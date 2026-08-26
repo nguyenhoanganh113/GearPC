@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: GearPC
+
+  # Cấu hình Docker Compose Integration
+  # Spring Boot sẽ tự động bật/tắt các container trong compose.yaml khi chạy/dừng app
+  docker:
+    compose:
+      lifecycle-management: start-and-stop
+
+  # Cấu hình PostgreSQL (Spring Boot Docker Compose sẽ tự nhận diện kết nối)
+  datasource:
+    url: jdbc:postgresql://localhost:5435/gearpc_db
+    username: postgres
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+
+  # Cấu hình JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  # Cấu hình Redis
+  data:
+    redis:
+      host: localhost
+      port: 6378
+
+server:
+  port: 8086
