@@ -3,7 +3,6 @@ package com.gearpc.common.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +15,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -30,10 +28,6 @@ public abstract class AbstractAuditingEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
-    @Id
-    @Column(columnDefinition = "VARCHAR(36)", updatable = false, nullable = false)
-    private UUID id;
 
     @CreatedBy
     @Column(name = "created_by", updatable = false)
