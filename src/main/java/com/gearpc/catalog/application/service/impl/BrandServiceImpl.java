@@ -11,7 +11,6 @@ import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.common.util.SlugUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 

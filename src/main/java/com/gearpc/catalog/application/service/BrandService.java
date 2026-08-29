@@ -19,7 +19,7 @@ public interface BrandService {
             @NonNull @RequestParam(required = false) String keyword,
             @NonNull @RequestParam(required = false) Boolean active,
             @PageableDefault(
-                    size = 10,
+                    size = 15,
                     sort = "createdAt",
                     direction = Sort.Direction.DESC
             ) Pageable pageable

@@ -1,11 +1,9 @@
 package com.gearpc.common.exception;
 
-import com.gearpc.common.dto.ApiResponse;
 import com.gearpc.common.dto.ErrorResponse;
 import com.gearpc.common.dto.FieldErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

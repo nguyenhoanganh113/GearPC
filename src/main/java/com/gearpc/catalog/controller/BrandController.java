@@ -41,7 +41,7 @@ public class BrandController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean active,
             @PageableDefault(
-                    size = 10,
+                    size = 15,
                     sort = {"createdAt", "id"}, // tier-breaker
                     direction = Sort.Direction.DESC
             )
