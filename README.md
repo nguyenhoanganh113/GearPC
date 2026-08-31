@@ -35,19 +35,27 @@ GearPC là dự án Backend RESTful API cho hệ thống thương mại điện 
 Dự án sử dụng chuẩn bọc dữ liệu chung (`ApiResponse`) nhằm đồng nhất cấu trúc JSON trả về. Các mã trạng thái (Business Codes) được quy hoạch theo từng module nghiệp vụ để dễ dàng truy vết trạng thái xử lý ở phía Frontend:
 
 ### 1. Mã lỗi chung hệ thống (Common Errors - Dải mã 1xxx)
-| Mã Code | HTTP Status | Thông báo (Message) | Ý nghĩa nghiệp vụ |
-| :--- | :--- | :--- | :--- |
+| Mã Code    | HTTP Status       | Thông báo (Message)                                    | Ý nghĩa nghiệp vụ                                              |
+|:-----------|:------------------|:-------------------------------------------------------|:---------------------------------------------------------------|
 | **`1003`** | `400 Bad Request` | *Dữ liệu không hợp lệ hoặc vi phạm ràng buộc hệ thống* | Lỗi vi phạm toàn vẹn dữ liệu chung ở tầng Database/Validation. |
 
 ### 2. Module Brand (Thương Hiệu - Dải mã 2xxx)
 Quy ước: Mã `21xx` dành cho các thao tác thành công, mã `20xx` dành cho các ngoại lệ/lỗi.
 
-| Mã Code | HTTP Status     | Thông báo (Message) | Phân loại |
-| :--- |:----------------| :--- | :--- |
+| Mã Code    | HTTP Status     | Thông báo (Message)                   | Phân loại                                                                               |
+|:-----------|:----------------|:--------------------------------------|:----------------------------------------------------------------------------------------|
 | **`2100`** | `200`           | *(Tùy thuộc vào thao tác thành công)* | **Thành công** - Áp dụng cho mọi thao tác truy vấn, thêm, sửa, xóa trên resource Brand. |
-| **`2001`** | `404 Not Found` | *Thương hiệu không thể tìm thấy!* | **Lỗi** - Xảy ra khi truy vấn/cập nhật/xóa một ID không tồn tại trong Database. |
-| **`2002`** | `409 Conflict`  | *Tên thương hiệu đã tồn tại* | **Lỗi** - Xảy ra khi tạo mới hoặc cập nhật trùng tên với một thương hiệu khác. |
+| **`2001`** | `404 Not Found` | *Thương hiệu không thể tìm thấy!*     | **Lỗi** - Xảy ra khi truy vấn/cập nhật/xóa một ID không tồn tại trong Database.         |
+| **`2002`** | `409 Conflict`  | *Tên thương hiệu đã tồn tại*          | **Lỗi** - Xảy ra khi tạo mới hoặc cập nhật trùng tên với một thương hiệu khác.          |
 
+### 3. Module Category (Danh Mục - Dải mã 22xx / 23xx)
+Quy ước: Mã `23xx` dành cho các thao tác thành công, mã `22xx` dành cho các ngoại lệ/lỗi.
+
+| Mã Code    | HTTP Status     | Thông báo (Message)                   | Phân loại                                                                                  |
+|:-----------|:----------------|:--------------------------------------|:-------------------------------------------------------------------------------------------|
+| **`2300`** | `200` / `201`   | *(Tùy thuộc vào thao tác thành công)* | **Thành công** - Áp dụng cho mọi thao tác truy vấn, thêm, sửa, xóa trên resource Category. |
+| **`2201`** | `404 Not Found` | *Danh mục không thể tìm thấy!*        | **Lỗi** - Xảy ra khi truy vấn/cập nhật/xóa một ID danh mục không tồn tại trong Database.   |
+| **`2202`** | `409 Conflict`  | *Tên danh mục đã tồn tại*             | **Lỗi** - Xảy ra khi tạo mới hoặc cập nhật trùng tên với một danh mục khác.                |
 ---
 
 ## 📚 Tài Liệu Tham Khảo (References)

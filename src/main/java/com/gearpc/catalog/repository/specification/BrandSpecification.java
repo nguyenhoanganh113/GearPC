@@ -1,4 +1,4 @@
-package com.gearpc.catalog.repository.repository;
+package com.gearpc.catalog.repository.specification;
 
 import com.gearpc.catalog.domain.entity.Brand;
 import lombok.experimental.UtilityClass;
