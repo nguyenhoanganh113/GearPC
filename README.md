@@ -30,6 +30,26 @@ GearPC là dự án Backend RESTful API cho hệ thống thương mại điện 
 
 ---
 
+## 📌 Quy Ước Mã Trạng Thái (Business & Error Codes)
+
+Dự án sử dụng chuẩn bọc dữ liệu chung (`ApiResponse`) nhằm đồng nhất cấu trúc JSON trả về. Các mã trạng thái (Business Codes) được quy hoạch theo từng module nghiệp vụ để dễ dàng truy vết trạng thái xử lý ở phía Frontend:
+
+### 1. Mã lỗi chung hệ thống (Common Errors - Dải mã 1xxx)
+| Mã Code | HTTP Status | Thông báo (Message) | Ý nghĩa nghiệp vụ |
+| :--- | :--- | :--- | :--- |
+| **`1003`** | `400 Bad Request` | *Dữ liệu không hợp lệ hoặc vi phạm ràng buộc hệ thống* | Lỗi vi phạm toàn vẹn dữ liệu chung ở tầng Database/Validation. |
+
+### 2. Module Brand (Thương Hiệu - Dải mã 2xxx)
+Quy ước: Mã `21xx` dành cho các thao tác thành công, mã `20xx` dành cho các ngoại lệ/lỗi.
+
+| Mã Code | HTTP Status     | Thông báo (Message) | Phân loại |
+| :--- |:----------------| :--- | :--- |
+| **`2100`** | `200`           | *(Tùy thuộc vào thao tác thành công)* | **Thành công** - Áp dụng cho mọi thao tác truy vấn, thêm, sửa, xóa trên resource Brand. |
+| **`2001`** | `404 Not Found` | *Thương hiệu không thể tìm thấy!* | **Lỗi** - Xảy ra khi truy vấn/cập nhật/xóa một ID không tồn tại trong Database. |
+| **`2002`** | `409 Conflict`  | *Tên thương hiệu đã tồn tại* | **Lỗi** - Xảy ra khi tạo mới hoặc cập nhật trùng tên với một thương hiệu khác. |
+
+---
+
 ## 📚 Tài Liệu Tham Khảo (References)
 
 * [Spring Web](https://docs.spring.io/spring-boot/4.1.1/reference/web/servlet.html)

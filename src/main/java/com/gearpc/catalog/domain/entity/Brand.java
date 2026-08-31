@@ -16,13 +16,13 @@ import java.util.List;
 @Builder
 public class Brand extends BaseEntity {
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Column(name = "slug", nullable = false)
+    @Column(name = "slug", nullable = false, unique = true)
     private String slug;
 
-    @Column(name = "logo_url", length = 500)
+    @Column(name = "logo_url", length = 500, unique = true)
     private String logoUrl;
 
     @Column(name = "active", nullable = false)

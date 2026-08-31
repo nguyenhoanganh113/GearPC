@@ -11,4 +11,5 @@ public record PaginationResponse<T>(
         boolean first,
         boolean last
 ) {
+
 }

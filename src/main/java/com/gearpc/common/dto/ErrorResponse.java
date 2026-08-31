@@ -11,11 +11,10 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 public record ErrorResponse(
         long timestamp,
-        int status, // HTTP status code
-        String errorCode, // mã lỗi nghiệp vụ của dự án
-        String error, // tên của http status code
-        String message,
-        String path,
-        List<FieldErrorResponse> details
+        int code,
+        String errorName,     // Tên Enum của mã lỗi ("BRAND_SLUG_EXISTS")
+        String message,       // Thông báo lỗi chi tiết
+        String path,          // Endpoint URI gây ra lỗi
+        List<FieldErrorResponse> details // Danh sách lỗi validation chi tiết (nếu có)
 ) {
 }

@@ -12,4 +12,15 @@ public record ApiResponse<T>(
         String message,
         T data
 ) {
+    public static <T> ApiResponse<T> ok(int code, String message, T data) {
+        return new ApiResponse<>(code, message, data);
+    }
+
+    public static <T> ApiResponse<T> created(int code, String message, T data) {
+        return new ApiResponse<>(code, message, data);
+    }
+
+    public static <T> ApiResponse<T> noContent(int code, String message) {
+        return new ApiResponse<>(code, message, null);
+    }
 }
