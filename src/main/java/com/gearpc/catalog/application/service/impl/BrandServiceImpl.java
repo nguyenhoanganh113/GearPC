@@ -10,7 +10,7 @@ import com.gearpc.catalog.application.mapper.BrandMapper;
 import com.gearpc.catalog.application.service.BrandService;
 import com.gearpc.catalog.domain.entity.Brand;
 import com.gearpc.catalog.repository.BrandRepository;
-import com.gearpc.catalog.repository.repository.BrandSpecification;
+import com.gearpc.catalog.repository.specification.BrandSpecification;
 import com.gearpc.common.dto.PaginationResponse;
 import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
