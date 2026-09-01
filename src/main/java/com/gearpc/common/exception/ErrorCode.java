@@ -14,7 +14,10 @@ public enum ErrorCode {
     BRAND_EXISTS(2002, "Tên thương hiệu đã tồn tại", HttpStatus.CONFLICT),
 
     CATEGORY_NOT_FOUND(2201, "Danh mục không thể tìm thấy!", HttpStatus.NOT_FOUND),
-    CATEGORY_EXISTS(2202, "Tên danh mục đã tồn tại", HttpStatus.CONFLICT);
+    CATEGORY_EXISTS(2202, "Tên danh mục đã tồn tại", HttpStatus.CONFLICT),
+
+    PRODUCT_EXISTS(2402, "Sản phẩm đã tồn tại", HttpStatus.CONFLICT)
+    ;
 
     private final int code;
     private final String message;

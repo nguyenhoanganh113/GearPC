@@ -1,6 +1,7 @@
 package com.gearpc.catalog.application.mapper;
 
 import com.gearpc.catalog.application.dto.request.CreateCategoryRequest;
+import com.gearpc.catalog.application.dto.response.CategoryOptionResponse;
 import com.gearpc.catalog.application.dto.response.CreateCategoryResponse;
 import com.gearpc.catalog.application.dto.response.DetailCategoryResponse;
 import com.gearpc.catalog.application.dto.response.UpdateCategoryResponse;
@@ -22,5 +23,7 @@ public interface CategoryMapper {
     DetailCategoryResponse toDetailCategoryResponse(Category category);
 
     UpdateCategoryResponse toUpdateCategoryResponse(Category category);
+
+    CategoryOptionResponse toCategoryOptionResponse(Category category);
 
 }

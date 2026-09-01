@@ -1,6 +1,7 @@
 package com.gearpc.catalog.application.mapper;
 
 import com.gearpc.catalog.application.dto.request.CreateBrandRequest;
+import com.gearpc.catalog.application.dto.response.BrandOptionResponse;
 import com.gearpc.catalog.application.dto.response.CreateBrandResponse;
 import com.gearpc.catalog.application.dto.response.DetailBrandResponse;
 import com.gearpc.catalog.application.dto.response.UpdateBrandResponse;
@@ -22,5 +23,7 @@ public interface BrandMapper {
     DetailBrandResponse toDetailBrandResponse(Brand brand);
 
     UpdateBrandResponse toUpdateBrandResponse(Brand brand);
+
+    BrandOptionResponse toBrandOptionResponse(Brand brand);
 
 }
