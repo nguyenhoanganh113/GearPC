@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
     DATA_INTEGRITY_VIOLATION(1003, "Dữ liệu không hợp lệ hoặc vi phạm ràng buộc hệ thống", HttpStatus.BAD_REQUEST),
+    INVALID_PRICE_RANGE(1004, "Khoảng giá không hợp lệ", HttpStatus.BAD_REQUEST),
 
     BRAND_NOT_FOUND(2001, "Thương hiệu không thể tìm thấy!", HttpStatus.NOT_FOUND),
     BRAND_EXISTS(2002, "Tên thương hiệu đã tồn tại", HttpStatus.CONFLICT),

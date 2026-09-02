@@ -18,7 +18,7 @@ public class ProductSpecification {
             if(!StringUtils.hasText(keyword)) {
                 return criteriaBuilder.conjunction();
             }
-            String pattern = "%" + keyword.strip().toLowerCase(Locale.ROOT) + "%";
+            String pattern = "%" + keyword.toLowerCase(Locale.ROOT) + "%";
             return criteriaBuilder.or(
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
                     criteriaBuilder.like(criteriaBuilder.lower(root.get("sku")), pattern)

@@ -1,7 +1,7 @@
 package com.gearpc.catalog.controller;
 
 import com.gearpc.catalog.application.dto.request.CreateProductRequest;
-import com.gearpc.catalog.application.dto.request.SearchProductRequest;
+import com.gearpc.catalog.application.dto.request.ProductSearchRequest;
 import com.gearpc.catalog.application.dto.response.CreateProductResponse;
 import com.gearpc.catalog.application.dto.response.DetailProductResponse;
 import com.gearpc.catalog.application.service.ProductService;
@@ -39,15 +39,15 @@ public class ProductController {
 
     @GetMapping("/search")
     public ApiResponse<PaginationResponse<DetailProductResponse>> searchProductsForAdmin(
-            SearchProductRequest request,
             @PageableDefault(
                     size = 15,
-                    sort = {"createdAt", "id"}, // tier-breaker
+                    sort = "price",
                     direction = Sort.Direction.DESC
-            )
-            Pageable pageable
+            ) Pageable pageable,
+            ProductSearchRequest productSearchRequest
     ) {
-        PaginationResponse<DetailProductResponse> products = productService.searchProductsForAdmin(request, pageable);
+        PaginationResponse<DetailProductResponse> products =
+                productService.searchProductsForAdmin(productSearchRequest, pageable);
         return ApiResponse
                 .ok(2500, "Tìm kiếm danh sách sản phẩm thành công", products);
     }
