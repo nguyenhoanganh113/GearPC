@@ -16,6 +16,7 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(2201, "Danh mục không thể tìm thấy!", HttpStatus.NOT_FOUND),
     CATEGORY_EXISTS(2202, "Tên danh mục đã tồn tại", HttpStatus.CONFLICT),
 
+    PRODUCT_NOT_FOUND(2401, "Sản phẩm không thể tìm thấy!", HttpStatus.NOT_FOUND),
     PRODUCT_EXISTS(2402, "Sản phẩm đã tồn tại", HttpStatus.CONFLICT)
     ;
 
