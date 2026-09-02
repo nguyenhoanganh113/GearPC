@@ -2,8 +2,10 @@ package com.gearpc.catalog.application.service.impl;
 
 import com.gearpc.catalog.application.dto.request.CreateProductRequest;
 import com.gearpc.catalog.application.dto.request.ProductSearchRequest;
+import com.gearpc.catalog.application.dto.request.UpdateProductRequest;
 import com.gearpc.catalog.application.dto.response.CreateProductResponse;
 import com.gearpc.catalog.application.dto.response.DetailProductResponse;
+import com.gearpc.catalog.application.dto.response.UpdateProductResponse;
 import com.gearpc.catalog.application.mapper.ProductMapper;
 import com.gearpc.catalog.application.service.ProductService;
 import com.gearpc.catalog.domain.entity.Brand;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -121,6 +124,46 @@ public class ProductServiceImpl implements ProductService {
                 .totalElements(productPage.getTotalElements())
                 .content(detailProductResponses)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public UpdateProductResponse updateProduct(UUID id, UpdateProductRequest request) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        if (request.name() != null && !request.name().equals(product.getName())) {
+            if (productRepository.existsByName(request.name())) {
+                throw new AppException(ErrorCode.PRODUCT_EXISTS);
+            }
+            product.setName(request.name());
+            product.setSlug(SlugUtils.generateSlug(request.name()));
+        }
+
+        if (request.sku() != null && !request.sku().equals(product.getSku())) {
+            if (productRepository.existsBySku(request.sku())) {
+                throw new AppException(ErrorCode.PRODUCT_EXISTS);
+            }
+            product.setSku(request.sku());
+        }
+
+        Optional.ofNullable(request.description()).ifPresent(product::setDescription);
+        Optional.ofNullable(request.price()).ifPresent(product::setPrice);
+        Optional.ofNullable(request.stockQuantity()).ifPresent(product::setStockQuantity);
+        Optional.ofNullable(request.images()).ifPresent(product::setImages);
+        Optional.ofNullable(request.categoryId()).ifPresent(categoryId -> {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+            product.setCategory(category);
+        });
+        Optional.ofNullable(request.brandId()).ifPresent(brandId -> {
+            Brand brand = brandRepository.findById(brandId)
+                    .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+            product.setBrand(brand);
+        });
+
+        return productMapper.toUpdateProductResponse(product);
     }
 
     private Sort buildSort(ProductSearchRequest productSearchRequest, Sort defaultSort) {

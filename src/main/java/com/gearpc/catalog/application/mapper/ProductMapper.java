@@ -3,6 +3,7 @@ package com.gearpc.catalog.application.mapper;
 import com.gearpc.catalog.application.dto.request.CreateProductRequest;
 import com.gearpc.catalog.application.dto.response.CreateProductResponse;
 import com.gearpc.catalog.application.dto.response.DetailProductResponse;
+import com.gearpc.catalog.application.dto.response.UpdateProductResponse;
 import com.gearpc.catalog.domain.entity.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -24,5 +25,7 @@ public interface ProductMapper {
     CreateProductResponse toCreateProductResponse(Product product);
 
     DetailProductResponse toDetailProductResponse(Product product);
+
+    UpdateProductResponse toUpdateProductResponse(Product product);
 
 }

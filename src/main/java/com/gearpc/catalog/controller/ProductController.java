@@ -2,8 +2,10 @@ package com.gearpc.catalog.controller;
 
 import com.gearpc.catalog.application.dto.request.CreateProductRequest;
 import com.gearpc.catalog.application.dto.request.ProductSearchRequest;
+import com.gearpc.catalog.application.dto.request.UpdateProductRequest;
 import com.gearpc.catalog.application.dto.response.CreateProductResponse;
 import com.gearpc.catalog.application.dto.response.DetailProductResponse;
+import com.gearpc.catalog.application.dto.response.UpdateProductResponse;
 import com.gearpc.catalog.application.service.ProductService;
 import com.gearpc.common.dto.ApiResponse;
 import com.gearpc.common.dto.PaginationResponse;
@@ -50,6 +52,15 @@ public class ProductController {
                 productService.searchProductsForAdmin(productSearchRequest, pageable);
         return ApiResponse
                 .ok(2500, "Tìm kiếm danh sách sản phẩm thành công", products);
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<UpdateProductResponse> updateProduct(
+            @NonNull @PathVariable UUID id,
+            @Valid @RequestBody UpdateProductRequest request
+    ) {
+        UpdateProductResponse response = productService.updateProduct(id, request);
+        return ApiResponse.ok(2500, "Cập nhật sản phẩm thành công!", response);
     }
 
 }
