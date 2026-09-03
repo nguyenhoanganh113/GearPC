@@ -43,7 +43,7 @@ public class ProductController {
     public ApiResponse<PaginationResponse<DetailProductResponse>> searchProductsForAdmin(
             @PageableDefault(
                     size = 15,
-                    sort = "price",
+                    sort = {"price"},
                     direction = Sort.Direction.DESC
             ) Pageable pageable,
             ProductSearchRequest productSearchRequest

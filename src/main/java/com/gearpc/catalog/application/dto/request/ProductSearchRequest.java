@@ -19,10 +19,10 @@ public record ProductSearchRequest(
 
         ProductStatus productStatus,
 
-        @DecimalMin(value = "0.0", inclusive = true)
+        @DecimalMin(value = "0.0")
         BigDecimal minPrice,
 
-        @DecimalMin(value = "0.0", inclusive = true)
+        @DecimalMin(value = "0.0")
         BigDecimal maxPrice,
 
         Boolean inStock

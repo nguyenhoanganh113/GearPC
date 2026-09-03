@@ -18,7 +18,7 @@ public record UpdateProductRequest(
 
         String description,
 
-        @DecimalMin(value = "0.00", inclusive = true)
+        @DecimalMin(value = "0.00")
         BigDecimal price,
 
         @Min(value = 0, message = "Số lượng tồn kho không được âm")

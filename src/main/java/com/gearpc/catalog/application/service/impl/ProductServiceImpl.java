@@ -87,11 +87,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // 2. Xây dựng Sort dựa trên yêu cầu tìm kiếm và sắp xếp mặc định
-        /*
-        Sort sort = buildSort(productSearchRequest, pageable.getSort().and(Sort.by("id").descending()));
-        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        **/
-        Sort sort = buildSort(productSearchRequest, pageable.getSort().and(Sort.by("price").descending()));
+        Sort sort = buildSort(productSearchRequest, pageable.getSort());
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         // 3. Tạo Specification để filter (kết hợp các điều kiện)
@@ -171,7 +167,7 @@ public class ProductServiceImpl implements ProductService {
             return defaultSort;
         }
 
-        return switch (productSearchRequest.sortBy()) {
+        Sort primarySort = switch (productSearchRequest.sortBy()) {
             case PRICE_ASC -> Sort.by("price").ascending();
             case PRICE_DESC -> Sort.by("price").descending();
             case NAME_ASC -> Sort.by("name").ascending();
@@ -179,5 +175,8 @@ public class ProductServiceImpl implements ProductService {
             case CREATED_AT_ASC -> Sort.by("createdAt").ascending();
             case CREATED_AT_DESC -> Sort.by("createdAt").descending();
         };
+
+        //return primarySort;
+        return primarySort.and(Sort.by("id").descending()); // Secondary sort by id to ensure consistent ordering
     }
 }
