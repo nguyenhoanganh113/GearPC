@@ -1,11 +1,8 @@
 package com.gearpc.catalog.application.service.impl;
 
 import com.gearpc.catalog.application.dto.request.CreateBrandRequest;
-import com.gearpc.catalog.application.dto.response.BrandOptionResponse;
-import com.gearpc.catalog.application.dto.response.CreateBrandResponse;
-import com.gearpc.catalog.application.dto.response.DetailBrandResponse;
+import com.gearpc.catalog.application.dto.response.*;
 import com.gearpc.catalog.application.dto.request.UpdateBrandRequest;
-import com.gearpc.catalog.application.dto.response.UpdateBrandResponse;
 import com.gearpc.catalog.application.mapper.BrandMapper;
 import com.gearpc.catalog.application.service.BrandService;
 import com.gearpc.catalog.domain.entity.Brand;
@@ -59,15 +56,13 @@ public class BrandServiceImpl implements BrandService {
         List<DetailBrandResponse> content = brandPage.getContent().stream()
                 .map(brandMapper::toDetailBrandResponse)
                 .toList();
-        return new PaginationResponse<>(
-                content,
-                brandPage.getNumber(),
-                brandPage.getSize(),
-                brandPage.getTotalElements(),
-                brandPage.getTotalPages(),
-                brandPage.isFirst(),
-                brandPage.isLast()
-        );
+        return PaginationResponse.<DetailBrandResponse>builder()
+                .pageNo(brandPage.getNumber() + 1) // Page number is 0-based in Spring Data, so we add 1 for 1-based page number
+                .pageSize(brandPage.getSize())
+                .totalPages(brandPage.getTotalPages())
+                .totalElements(brandPage.getTotalElements())
+                .content(content)
+                .build();
     }
 
     @Override

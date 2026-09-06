@@ -66,7 +66,7 @@ public class CategoryController {
     }
 
     @PatchMapping("/{id}/status")
-    public ApiResponse<UpdateCategoryResponse> toggleCategoryStatus(
+    public ApiResponse<UpdateCategoryResponse> updateCategoryStatus(
             @NonNull @PathVariable UUID id,
             @RequestParam Boolean active
     ) {

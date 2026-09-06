@@ -9,8 +9,6 @@ import com.gearpc.catalog.application.dto.response.UpdateBrandResponse;
 import com.gearpc.common.dto.PaginationResponse;
 import lombok.NonNull;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -23,11 +21,7 @@ public interface BrandService {
     PaginationResponse<DetailBrandResponse> searchBrandsForAdmin(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean active,
-            @PageableDefault(
-                    size = 15,
-                    sort = "createdAt",
-                    direction = Sort.Direction.DESC
-            ) Pageable pageable
+            Pageable pageable
     );
 
     List<BrandOptionResponse> getActiveBrandOptions();

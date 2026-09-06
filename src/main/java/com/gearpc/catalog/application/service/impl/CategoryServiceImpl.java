@@ -2,10 +2,7 @@ package com.gearpc.catalog.application.service.impl;
 
 import com.gearpc.catalog.application.dto.request.CreateCategoryRequest;
 import com.gearpc.catalog.application.dto.request.UpdateCategoryRequest;
-import com.gearpc.catalog.application.dto.response.CategoryOptionResponse;
-import com.gearpc.catalog.application.dto.response.CreateCategoryResponse;
-import com.gearpc.catalog.application.dto.response.DetailCategoryResponse;
-import com.gearpc.catalog.application.dto.response.UpdateCategoryResponse;
+import com.gearpc.catalog.application.dto.response.*;
 import com.gearpc.catalog.application.mapper.CategoryMapper;
 import com.gearpc.catalog.application.service.CategoryService;
 import com.gearpc.catalog.domain.entity.Category;
@@ -55,15 +52,13 @@ public class CategoryServiceImpl implements CategoryService {
                 .map(categoryMapper::toDetailCategoryResponse)
                 .toList();
 
-        return new PaginationResponse<>(
-                content,
-                categoryPage.getNumber(),
-                categoryPage.getSize(),
-                categoryPage.getTotalElements(),
-                categoryPage.getTotalPages(),
-                categoryPage.isFirst(),
-                categoryPage.isLast()
-        );
+        return PaginationResponse.<DetailCategoryResponse>builder()
+                .pageNo(categoryPage.getNumber() + 1) // Page number is 0-based in Spring Data, so we add 1 for 1-based page number
+                .pageSize(categoryPage.getSize())
+                .totalPages(categoryPage.getTotalPages())
+                .totalElements(categoryPage.getTotalElements())
+                .content(content)
+                .build();
     }
 
     @Override

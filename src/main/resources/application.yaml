@@ -25,8 +25,12 @@ spring:
         format_sql: true
     open-in-view: false
 
-  # Cấu hình Redis
   data:
+    web:
+      pageable:
+        one-indexed-parameters: true #Whether to expose and assume 1-based page number indexes.
+        #Defaults to "false", meaning a page number of 0 in the request equals the first page.
+    # Cấu hình Redis
     redis:
       host: localhost
       port: 6378
