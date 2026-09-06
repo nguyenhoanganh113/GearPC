@@ -3,6 +3,7 @@ package com.gearpc.catalog.controller;
 import com.gearpc.catalog.application.dto.request.CreateProductRequest;
 import com.gearpc.catalog.application.dto.request.ProductSearchRequest;
 import com.gearpc.catalog.application.dto.request.UpdateProductRequest;
+import com.gearpc.catalog.application.dto.request.UpdateProductStatusRequest;
 import com.gearpc.catalog.application.dto.response.CreateProductResponse;
 import com.gearpc.catalog.application.dto.response.DetailProductResponse;
 import com.gearpc.catalog.application.dto.response.UpdateProductResponse;
@@ -61,6 +62,15 @@ public class ProductController {
     ) {
         UpdateProductResponse response = productService.updateProduct(id, request);
         return ApiResponse.ok(2500, "Cập nhật sản phẩm thành công!", response);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ApiResponse<UpdateProductResponse> updateProductStatus(
+            @NonNull @PathVariable UUID id,
+            @Valid @RequestBody UpdateProductStatusRequest request
+    ) {
+        UpdateProductResponse response = productService.updateProductStatus(id, request);
+        return ApiResponse.ok(2500, "Cập nhật trạng thái sản phẩm thành công!", response);
     }
 
 }

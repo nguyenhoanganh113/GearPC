@@ -3,6 +3,7 @@ package com.gearpc.catalog.application.service;
 import com.gearpc.catalog.application.dto.request.CreateProductRequest;
 import com.gearpc.catalog.application.dto.request.ProductSearchRequest;
 import com.gearpc.catalog.application.dto.request.UpdateProductRequest;
+import com.gearpc.catalog.application.dto.request.UpdateProductStatusRequest;
 import com.gearpc.catalog.application.dto.response.CreateProductResponse;
 import com.gearpc.catalog.application.dto.response.DetailProductResponse;
 import com.gearpc.catalog.application.dto.response.UpdateProductResponse;
@@ -29,6 +30,11 @@ public interface ProductService {
     UpdateProductResponse updateProduct(
             @NotNull @RequestParam("id") UUID id,
             @Valid @RequestBody UpdateProductRequest request
+    );
+
+    UpdateProductResponse updateProductStatus(
+            @NotNull @RequestParam("id") UUID id,
+            @RequestBody UpdateProductStatusRequest request
     );
 
 }

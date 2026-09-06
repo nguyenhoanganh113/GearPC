@@ -3,6 +3,7 @@ package com.gearpc.catalog.application.service.impl;
 import com.gearpc.catalog.application.dto.request.CreateProductRequest;
 import com.gearpc.catalog.application.dto.request.ProductSearchRequest;
 import com.gearpc.catalog.application.dto.request.UpdateProductRequest;
+import com.gearpc.catalog.application.dto.request.UpdateProductStatusRequest;
 import com.gearpc.catalog.application.dto.response.CreateProductResponse;
 import com.gearpc.catalog.application.dto.response.DetailProductResponse;
 import com.gearpc.catalog.application.dto.response.UpdateProductResponse;
@@ -162,6 +163,18 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toUpdateProductResponse(product);
     }
 
+    @Override
+    @Transactional
+    public UpdateProductResponse updateProductStatus(UUID id, UpdateProductStatusRequest request) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        Optional.ofNullable(request.productStatus())
+                .map(ProductStatus::fromString)
+                .ifPresent(product::setProductStatus);
+        return productMapper.toUpdateProductResponse(product);
+    }
+
     private Sort buildSort(ProductSearchRequest productSearchRequest, Sort defaultSort) {
         if (productSearchRequest.sortBy() == null) {
             return defaultSort;
@@ -176,7 +189,7 @@ public class ProductServiceImpl implements ProductService {
             case CREATED_AT_DESC -> Sort.by("createdAt").descending();
         };
 
-        //return primarySort;
-        return primarySort.and(Sort.by("id").descending()); // Secondary sort by id to ensure consistent ordering
+        return primarySort;
+        //return primarySort.and(Sort.by("id").descending()); // Secondary sort by id to ensure consistent ordering
     }
 }
