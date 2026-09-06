@@ -189,7 +189,7 @@ public class ProductServiceImpl implements ProductService {
             case CREATED_AT_DESC -> Sort.by("createdAt").descending();
         };
 
-        return primarySort;
-        //return primarySort.and(Sort.by("id").descending()); // Secondary sort by id to ensure consistent ordering
+        //return primarySort;
+        return primarySort.and(Sort.by("id").descending()); // Secondary sort by id to ensure consistent ordering
     }
 }
