@@ -19,7 +19,8 @@ public enum ErrorCode {
 
     PRODUCT_NOT_FOUND(2401, "Sản phẩm không thể tìm thấy!", HttpStatus.NOT_FOUND),
     PRODUCT_EXISTS(2402, "Sản phẩm đã tồn tại", HttpStatus.CONFLICT),
-    INVALID_PRODUCT_STATUS(2403, "Trạng thái sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST)
+    INVALID_PRODUCT_STATUS(2403, "Trạng thái sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST),
+    PRODUCT_ALREADY_DELETED(2404, "Sản phẩm đã bị xóa", HttpStatus.BAD_REQUEST)
     ;
 
     private final int code;

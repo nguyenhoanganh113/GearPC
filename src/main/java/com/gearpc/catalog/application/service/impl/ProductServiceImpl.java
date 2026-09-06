@@ -22,6 +22,7 @@ import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.common.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,12 +31,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -67,6 +70,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DetailProductResponse getProduct(UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
@@ -173,6 +177,22 @@ public class ProductServiceImpl implements ProductService {
                 .map(ProductStatus::fromString)
                 .ifPresent(product::setProductStatus);
         return productMapper.toUpdateProductResponse(product);
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(UUID id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        if (product.getProductStatus() == ProductStatus.INACTIVE) {
+            throw new AppException(ErrorCode.PRODUCT_ALREADY_DELETED);
+        }
+
+        product.setProductStatus(ProductStatus.INACTIVE);
+        log.info("Product with ID {} has been marked as INACTIVE.", product.getId());
+        product.setDeletedAt(Instant.now());
+
     }
 
     private Sort buildSort(ProductSearchRequest productSearchRequest, Sort defaultSort) {

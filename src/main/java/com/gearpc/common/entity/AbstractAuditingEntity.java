@@ -45,4 +45,7 @@ public abstract class AbstractAuditingEntity implements Serializable {
     @Column(name = "last_modified_at", nullable = false)
     private Instant lastModifiedAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
 }

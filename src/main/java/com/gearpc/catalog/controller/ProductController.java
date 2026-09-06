@@ -73,4 +73,10 @@ public class ProductController {
         return ApiResponse.ok(2500, "Cập nhật trạng thái sản phẩm thành công!", response);
     }
 
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteProduct(@NonNull @PathVariable UUID id) {
+        productService.deleteProduct(id);
+        return ApiResponse.noContent(2500, "Xóa sản phẩm thành công!");
+    }
+
 }

@@ -37,4 +37,6 @@ public interface ProductService {
             @RequestBody UpdateProductStatusRequest request
     );
 
+    void deleteProduct(@NotNull @RequestParam("id") UUID id);
+
 }
