@@ -1,11 +1,8 @@
 package com.gearpc.common.entity;
 
-import com.github.f4b6a3.uuid.UuidCreator;
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.*;
 import lombok.Getter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -14,14 +11,9 @@ import java.util.UUID;
 public abstract class BaseEntity extends AbstractAuditingEntity {
 
     @Id
+    @GeneratedValue
+    @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
-
-    @PrePersist
-    protected void generateId() {
-        if (this.id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch(); // UUID v7
-        }
-    }
 
 }
