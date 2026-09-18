@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 public enum CommonResultCodes implements ResultCode {
 
     SUCCESS("200", 200, "Thành công"),
+    CREATED("201", 201, "Tạo mới thành công"),
     BAD_REQUEST("400", 400, "Yêu cầu không hợp lệ"),
     UNAUTHORIZED("401", 401, "Thông tin xác thực không hợp lệ"),
     FORBIDDEN("403", 403, "Không có quyền truy cập"),

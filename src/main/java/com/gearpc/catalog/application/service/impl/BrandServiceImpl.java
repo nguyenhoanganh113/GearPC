@@ -69,7 +69,7 @@ public class BrandServiceImpl implements BrandService {
     public List<BrandOptionResponse> getActiveBrandOptions() {
         return brandRepository.findAllByActiveTrueOrderByNameAsc()
                 .stream()
-                .map(brand -> new BrandOptionResponse(brand.getId(), brand.getName()))
+                .map(brand -> new BrandOptionResponse(brand.getId(), brand.getName(), brand.getSlug()))
                 .toList();
     }
 

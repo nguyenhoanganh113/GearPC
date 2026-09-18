@@ -33,6 +33,14 @@ public record ApiResponse<T>(
                 .build();
     }
 
+    public static <T> ApiResponse<T> created(T data){
+        return ApiResponse.<T>builder()
+                .code(CommonResultCodes.CREATED.getCode())
+                .message(CommonResultCodes.CREATED.getMessage())
+                .data(data)
+                .build();
+    }
+
     public static ApiResponse<Void> success() {
         return success(null);
     }
@@ -51,8 +59,9 @@ public record ApiResponse<T>(
 
     public static <T> ApiResponse<T> error(String code, String message, T data) {
         return ApiResponse.<T>builder()
-                .code(CommonResultCodes.INTERNAL_SERVER_ERROR.getCode())
-                .message(CommonResultCodes.INTERNAL_SERVER_ERROR.getMessage())
+                .code(code)
+                .message(message)
+                .data(data)
                 .build();
     }
 

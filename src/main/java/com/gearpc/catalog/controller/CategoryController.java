@@ -29,7 +29,7 @@ public class CategoryController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreateCategoryResponse> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
         CreateCategoryResponse response = categoryService.createCategory(request);
-        return ApiResponse.created(2300, "Danh mục được tạo thành công!", response);
+        return ApiResponse.created("2300", "Danh mục được tạo thành công!", response);
     }
 
     @GetMapping("/search")
@@ -46,13 +46,13 @@ public class CategoryController {
         PaginationResponse<DetailCategoryResponse> categoryPaginationResponse =
                 categoryService.searchCategoriesForAdmin(keyword, active, pageable);
         return ApiResponse
-                .ok(2300, "Tìm kiếm danh sách danh mục thành công", categoryPaginationResponse);
+                .ok("2300", "Tìm kiếm danh sách danh mục thành công", categoryPaginationResponse);
     }
 
     @GetMapping("/options")
     public ApiResponse<List<CategoryOptionResponse>> getActiveCategoryOptions() {
         List<CategoryOptionResponse> options = categoryService.getActiveCategoryOptions();
-        return ApiResponse.ok(2300, "Lấy danh sách lựa chọn danh mục thành công", options);
+        return ApiResponse.ok("2300", "Lấy danh sách lựa chọn danh mục thành công", options);
     }
 
     @PutMapping("/{id}")
@@ -62,7 +62,7 @@ public class CategoryController {
     ) {
         UpdateCategoryResponse response = categoryService.updateCategory(id, request);
         return ApiResponse
-                .ok(2300, "Cập nhật danh mục thành công!", response);
+                .ok("2300", "Cập nhật danh mục thành công!", response);
     }
 
     @PatchMapping("/{id}/status")
@@ -72,14 +72,14 @@ public class CategoryController {
     ) {
         UpdateCategoryResponse response = categoryService.updateCategoryStatus(id, active);
         return ApiResponse
-                .ok(2300, "Cập nhật trạng thái danh mục thành công", response);
+                .ok("2300", "Cập nhật trạng thái danh mục thành công", response);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> deleteCategory(@NonNull @PathVariable UUID id) {
         categoryService.deleteCategory(id);
-        return ApiResponse.noContent(2300, "Xóa danh mục thành công");
+        return ApiResponse.noContent("2300", "Xóa danh mục thành công");
     }
 
 }

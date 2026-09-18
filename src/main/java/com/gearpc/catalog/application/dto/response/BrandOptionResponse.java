@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record BrandOptionResponse(
     UUID id,
-    String name
+    String name,
+    String slug
 ) {
 }

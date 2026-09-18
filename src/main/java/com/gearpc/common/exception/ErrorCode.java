@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
+    VALIDATION_FAILED(1001, "Dữ liệu đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
+    MALFORMED_JSON(1002, "JSON không hợp lệ hoặc không thể đọc được", HttpStatus.BAD_REQUEST),
     DATA_INTEGRITY_VIOLATION(1003, "Dữ liệu không hợp lệ hoặc vi phạm ràng buộc hệ thống", HttpStatus.BAD_REQUEST),
     INVALID_PRICE_RANGE(1004, "Khoảng giá không hợp lệ", HttpStatus.BAD_REQUEST),
 
