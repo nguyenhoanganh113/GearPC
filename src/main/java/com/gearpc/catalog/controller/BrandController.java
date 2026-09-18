@@ -32,7 +32,7 @@ public class BrandController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreateBrandResponse> createBrand(@Valid @RequestBody CreateBrandRequest request) {
         CreateBrandResponse response = brandService.createBrand(request);
-        return ApiResponse.created(2100, "Thương hiệu được tạo thành công!", response);
+        return ApiResponse.created(response);
     }
 
     @GetMapping("/search")
@@ -47,21 +47,19 @@ public class BrandController {
             Pageable pageable
     ) {
         PaginationResponse<DetailBrandResponse> brands = brandService.searchBrandsForAdmin(keyword, active, pageable);
-        return ApiResponse
-                .ok(2100, "Tìm kiếm danh sách thương hiệu thành công", brands);
+        return ApiResponse.success(brands);
     }
 
     @GetMapping("/options")
     public ApiResponse<List<BrandOptionResponse>> getActiveBrandOptions() {
         List<BrandOptionResponse> options = brandService.getActiveBrandOptions();
-        return ApiResponse.ok(2100, "Lấy danh sách lựa chọn thương hiệu thành công", options);
+        return ApiResponse.success(options);
     }
 
     @GetMapping("/{id}")
     public ApiResponse<DetailBrandResponse> getBrandById(@NonNull @PathVariable UUID id) {
         DetailBrandResponse response = brandService.getBrand(id);
-        return ApiResponse
-                .ok(2100, "Lấy chi tiết thương hiệu thành công!", response);
+        return ApiResponse.success(response);
     }
 
     @PutMapping("/{id}")
@@ -70,8 +68,7 @@ public class BrandController {
             @Valid @RequestBody UpdateBrandRequest request
     ) {
         UpdateBrandResponse response = brandService.updateBrand(id, request);
-        return ApiResponse
-                .ok(2100, "Cập nhật thương hiệu thành công!", response);
+        return ApiResponse.success(response);
     }
 
     @PatchMapping("/{id}/status")
@@ -80,14 +77,13 @@ public class BrandController {
             @RequestParam Boolean active
     ) {
         UpdateBrandResponse response = brandService.updateBrandStatus(id, active);
-        return ApiResponse
-                .ok(2100, "Cập nhật trạng thái thương hiệu thành công", response);
+        return ApiResponse.success(response);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> deleteBrand(@NonNull @PathVariable UUID id) {
         brandService.deleteBrand(id);
-        return ApiResponse.noContent(2100, "Xóa thương hiệu thành công");
+        return ApiResponse.success();
     }
 }

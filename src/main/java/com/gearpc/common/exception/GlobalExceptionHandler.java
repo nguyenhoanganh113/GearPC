@@ -1,58 +1,62 @@
 package com.gearpc.common.exception;
 
-import com.gearpc.common.dto.ErrorResponse;
+import com.gearpc.common.dto.ApiResponse;
 import com.gearpc.common.dto.FieldErrorResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 
-import java.util.Date;
 import java.util.List;
 
 @RestControllerAdvice
-@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
-    public ResponseEntity<ErrorResponse> handleAppException(
-            AppException ex,
-            WebRequest request
-    ) {
-        ErrorCode errorCode = ex.getErrorCode();
-        ErrorResponse response = buildErrorResponse(errorCode, request, null);
-
-        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+    public ResponseEntity<ApiResponse<Void>> handleAppException(AppException exception) {
+        return buildErrorResponse(exception.getErrorCode());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
-            DataIntegrityViolationException ex,
-            WebRequest request
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(
+            DataIntegrityViolationException exception
     ) {
-        ErrorCode errorCode = ErrorCode.DATA_INTEGRITY_VIOLATION;
-        ErrorResponse errorResponse = buildErrorResponse(errorCode, request, null);
-        return ResponseEntity
-                .status(errorCode.getHttpStatus())
-                .body(errorResponse);
+        return buildErrorResponse(ErrorCode.DATA_INTEGRITY_VIOLATION);
     }
 
-    private ErrorResponse buildErrorResponse(
-            ErrorCode errorCode,
-            WebRequest request,
-            List<FieldErrorResponse> details
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<List<FieldErrorResponse>>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException exception
     ) {
-        return ErrorResponse.builder()
-                .timestamp(new Date().getTime())
-                //.code(errorCode.getHttpStatus().value()) // HTTP Status Code: 400, 404, 409...
-                .code(errorCode.getCode()) // Business Code: 1001, 2001, 2002...
-                .errorName(errorCode.name()) // Enum String Name: BRAND_SLUG_EXISTS..
-                .message(errorCode.getMessage())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .details(details)
-                .build();
+        List<FieldErrorResponse> details = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> new FieldErrorResponse(error.getField(), error.getDefaultMessage()))
+                .toList();
+
+        return buildErrorResponse(ErrorCode.VALIDATION_FAILED, details);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException exception
+    ) {
+        return buildErrorResponse(ErrorCode.MALFORMED_JSON);
+    }
+
+    private ResponseEntity<ApiResponse<Void>> buildErrorResponse(ErrorCode errorCode) {
+        return buildErrorResponse(errorCode, null);
+    }
+
+    private <T> ResponseEntity<ApiResponse<T>> buildErrorResponse(ErrorCode errorCode, T data) {
+        ApiResponse<T> response = ApiResponse.error(
+                String.valueOf(errorCode.getCode()),
+                errorCode.getMessage(),
+                data
+        );
+
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+    }
 }
