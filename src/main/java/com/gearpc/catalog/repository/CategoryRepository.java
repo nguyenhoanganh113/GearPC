@@ -6,13 +6,16 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, UUID>, JpaSpecificationExecutor<Category> {
 
-    boolean existsByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCaseAndDeletedAtIsNull(String name);
 
-    List<Category> findAllByActiveTrueOrderByNameAsc();
+    List<Category> findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc();
+
+    Optional<Category> findByIdAndDeletedAtIsNull(UUID id);
 
 }

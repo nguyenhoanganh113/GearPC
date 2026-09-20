@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Size;
 
 public record UpdateCategoryRequest(
 
-        @Size(min = 1)
+        @Size(min = 1, message = "Tên danh mục phải nhiều hơn 1 ký tự")
         String name,
 
         String description,

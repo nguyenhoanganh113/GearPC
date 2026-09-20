@@ -33,7 +33,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CreateCategoryResponse createCategory(CreateCategoryRequest createCategoryRequest) {
-        if(categoryRepository.existsByNameIgnoreCase(createCategoryRequest.name()))
+        if(categoryRepository.existsByNameIgnoreCaseAndDeletedAtIsNull(createCategoryRequest.name()))
             throw new AppException(ErrorCode.CATEGORY_EXISTS);
         Category category = categoryMapper.toCategory(createCategoryRequest);
         category.setSlug(SlugUtils.generateSlug(category.getName()));
@@ -43,8 +43,10 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public PaginationResponse<DetailCategoryResponse> searchCategoriesForAdmin(String keyword, Boolean active, Pageable pageable) {
-        Specification<Category> spec = Specification.where(CategorySpecification.hasKeyword(keyword))
-                .and(CategorySpecification.isActive(active));
+        Specification<Category> spec =
+                Specification.where(CategorySpecification.isNotDeleted())
+                                        .and(CategorySpecification.hasKeyword(keyword))
+                                        .and(CategorySpecification.isActive(active));
 
         Page<Category> categoryPage = categoryRepository.findAll(spec, pageable);
 
@@ -63,7 +65,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryOptionResponse> getActiveCategoryOptions() {
-        return categoryRepository.findAllByActiveTrueOrderByNameAsc()
+        return categoryRepository.findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc()
                 .stream()
                 .map(category -> new CategoryOptionResponse(category.getId(), category.getName()))
                 .toList();
@@ -83,7 +85,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         if (updateCategoryRequest.name() != null && !category.getName().equals(updateCategoryRequest.name())) {
-            if (categoryRepository.existsByNameIgnoreCase(updateCategoryRequest.name())) {
+            if (categoryRepository.existsByNameIgnoreCaseAndDeletedAtIsNull(updateCategoryRequest.name())) {
                 throw new AppException(ErrorCode.CATEGORY_EXISTS);
             }
             category.setName(updateCategoryRequest.name());
@@ -110,12 +112,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(@NonNull UUID id) {
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         // TODO: Cần kiểm tra xem Category có đang chứa Product nào không trước khi xóa
         ///  if (productRepository.existsByCategoryId(id)) {
         //     throw new AppException(ErrorCode.CATEGORY_HAS_PRODUCTS);
         // }
-        categoryRepository.delete(category);
+        category.softDelete();
     }
 }
