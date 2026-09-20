@@ -1,6 +1,5 @@
 package com.gearpc.catalog.repository.specification;
 
-import com.gearpc.catalog.domain.entity.Brand;
 import com.gearpc.catalog.domain.entity.Category;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.jpa.domain.Specification;
