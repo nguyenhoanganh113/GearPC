@@ -48,4 +48,16 @@ public abstract class AbstractAuditingEntity implements Serializable {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    public void softDelete() {
+        this.deletedAt = Instant.now();
+    }
+
+    public void restore() {
+        this.deletedAt = null;
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
+
 }

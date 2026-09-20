@@ -43,8 +43,10 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public PaginationResponse<DetailCategoryResponse> searchCategoriesForAdmin(String keyword, Boolean active, Pageable pageable) {
-        Specification<Category> spec = Specification.where(CategorySpecification.hasKeyword(keyword))
-                .and(CategorySpecification.isActive(active));
+        Specification<Category> spec =
+                Specification.where(CategorySpecification.isNotDeleted())
+                                        .and(CategorySpecification.hasKeyword(keyword))
+                                        .and(CategorySpecification.isActive(active));
 
         Page<Category> categoryPage = categoryRepository.findAll(spec, pageable);
 
@@ -110,12 +112,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(@NonNull UUID id) {
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         // TODO: Cần kiểm tra xem Category có đang chứa Product nào không trước khi xóa
         ///  if (productRepository.existsByCategoryId(id)) {
         //     throw new AppException(ErrorCode.CATEGORY_HAS_PRODUCTS);
         // }
-        categoryRepository.delete(category);
+        category.softDelete();
     }
 }
