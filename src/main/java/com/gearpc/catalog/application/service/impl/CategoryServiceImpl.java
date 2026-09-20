@@ -33,7 +33,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CreateCategoryResponse createCategory(CreateCategoryRequest createCategoryRequest) {
-        if(categoryRepository.existsByNameIgnoreCase(createCategoryRequest.name()))
+        if(categoryRepository.existsByNameIgnoreCaseAndDeletedAtIsNull(createCategoryRequest.name()))
             throw new AppException(ErrorCode.CATEGORY_EXISTS);
         Category category = categoryMapper.toCategory(createCategoryRequest);
         category.setSlug(SlugUtils.generateSlug(category.getName()));
@@ -65,7 +65,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryOptionResponse> getActiveCategoryOptions() {
-        return categoryRepository.findAllByActiveTrueOrderByNameAsc()
+        return categoryRepository.findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc()
                 .stream()
                 .map(category -> new CategoryOptionResponse(category.getId(), category.getName()))
                 .toList();
@@ -85,7 +85,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         if (updateCategoryRequest.name() != null && !category.getName().equals(updateCategoryRequest.name())) {
-            if (categoryRepository.existsByNameIgnoreCase(updateCategoryRequest.name())) {
+            if (categoryRepository.existsByNameIgnoreCaseAndDeletedAtIsNull(updateCategoryRequest.name())) {
                 throw new AppException(ErrorCode.CATEGORY_EXISTS);
             }
             category.setName(updateCategoryRequest.name());

@@ -12,9 +12,9 @@ import java.util.UUID;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, UUID>, JpaSpecificationExecutor<Category> {
 
-    boolean existsByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCaseAndDeletedAtIsNull(String name);
 
-    List<Category> findAllByActiveTrueOrderByNameAsc();
+    List<Category> findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc();
 
     Optional<Category> findByIdAndDeletedAtIsNull(UUID id);
 
