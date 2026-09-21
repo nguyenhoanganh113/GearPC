@@ -26,6 +26,11 @@ public class ProductSpecification {
         };
     }
 
+    public Specification<Product> isNotDeleted() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.isNull(root.get("deletedAt"));
+    }
+
     public Specification<Product> hasPrice(BigDecimal minPrice, BigDecimal maxPrice) {
         return (root, query, criteriaBuilder) -> {
             if (minPrice == null && maxPrice == null) {

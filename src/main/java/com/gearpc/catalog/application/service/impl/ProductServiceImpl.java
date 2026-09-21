@@ -98,6 +98,7 @@ public class ProductServiceImpl implements ProductService {
         // 3. Tạo Specification để filter (kết hợp các điều kiện)
         Specification<Product> spec = Specification.allOf(
                 ProductSpecification.hasKeyword(productSearchRequest.keyword()),
+                ProductSpecification.isNotDeleted(),
                 ProductSpecification.hasCategory(productSearchRequest.categoryId()),
                 ProductSpecification.hasBrand(productSearchRequest.brandId()),
                 ProductSpecification.hasStatus(productSearchRequest.productStatus()),
