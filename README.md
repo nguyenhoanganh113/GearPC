@@ -129,12 +129,93 @@ Mỗi phần tử từ `/brands/options` gồm `id`, `name` và `slug`.
 
 | Method | Endpoint | Mô tả |
 |---|---|---|
-| `POST` | `/products` | Tạo sản phẩm |
+| `POST` | `/products` | Tạo sản phẩm mới với trạng thái mặc định `INACTIVE` |
 | `GET` | `/products/{id}` | Lấy chi tiết sản phẩm |
 | `GET` | `/products/search` | Tìm kiếm, lọc và phân trang sản phẩm |
-| `PUT` | `/products/{id}` | Cập nhật sản phẩm |
-| `PATCH` | `/products/{id}/status` | Cập nhật trạng thái sản phẩm |
-| `DELETE` | `/products/{id}` | Xóa sản phẩm |
+| `PUT` | `/products/{id}` | Cập nhật một phần thông tin sản phẩm; các field không gửi lên được giữ nguyên |
+| `PATCH` | `/products/{id}/status` | Cập nhật trạng thái `ACTIVE` hoặc `INACTIVE` |
+| `DELETE` | `/products/{id}` | Soft delete sản phẩm bằng cách chuyển sang `INACTIVE` và ghi nhận `deletedAt` |
+
+#### Tạo sản phẩm
+
+```http
+POST /api/v1/admin/products
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "ASUS ROG Strix GeForce RTX 5080",
+  "sku": "ROG-STRIX-RTX5080-O16G",
+  "description": "Card đồ họa ASUS ROG Strix",
+  "price": 42990000,
+  "stockQuantity": 10,
+  "images": "https://example.com/rtx-5080.jpg",
+  "categoryId": "550e8400-e29b-41d4-a716-446655440000",
+  "brandId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+}
+```
+
+Các field bắt buộc gồm `name`, `price` (lớn hơn `0`), `stockQuantity` (không âm), `categoryId` và `brandId`. `sku`, `description` và `images` là tùy chọn. Tên hoặc SKU trùng với sản phẩm đã tồn tại trả lỗi `2402`.
+
+#### Tìm kiếm sản phẩm
+
+`GET /products/search` nhận các query parameter sau:
+
+| Tham số | Kiểu | Mô tả |
+|---|---|---|
+| `keyword` | `string` | Từ khóa tìm kiếm, tối đa 150 ký tự |
+| `categoryId` | `UUID` | Lọc theo danh mục |
+| `brandId` | `UUID` | Lọc theo thương hiệu |
+| `productStatus` | `enum` | `ACTIVE` hoặc `INACTIVE` |
+| `minPrice` | `decimal` | Giá tối thiểu, không âm |
+| `maxPrice` | `decimal` | Giá tối đa, không âm và không nhỏ hơn `minPrice` |
+| `inStock` | `boolean` | `true` để chỉ lấy sản phẩm còn hàng |
+| `sortBy` | `enum` | `NAME_ASC`, `NAME_DESC`, `PRICE_ASC`, `PRICE_DESC`, `CREATED_AT_ASC` hoặc `CREATED_AT_DESC` |
+| `page` | `integer` | Số trang, bắt đầu từ `1` |
+| `size` | `integer` | Số phần tử mỗi trang, mặc định `15` |
+| `sort` | `string` | Sắp xếp chuẩn Spring Data, ví dụ `price,asc`; mặc định `price,desc` khi không có `sortBy` |
+
+Khi có `sortBy`, giá trị này được ưu tiên hơn `sort`. Kết quả còn được sắp xếp phụ theo `id` giảm dần để giữ thứ tự ổn định.
+
+Ví dụ:
+
+```http
+GET /api/v1/admin/products/search?keyword=asus&productStatus=ACTIVE&minPrice=1000000&maxPrice=50000000&inStock=true&sortBy=PRICE_ASC&page=1&size=15
+```
+
+#### Cập nhật sản phẩm
+
+`PUT /products/{id}` nhận JSON với các field tùy chọn: `name`, `sku`, `description`, `price`, `stockQuantity`, `images`, `categoryId` và `brandId`. Field không xuất hiện hoặc chuỗi rỗng sau khi loại khoảng trắng sẽ không thay đổi dữ liệu hiện tại.
+
+```http
+PUT /api/v1/admin/products/550e8400-e29b-41d4-a716-446655440000
+Content-Type: application/json
+```
+
+```json
+{
+  "price": 41990000,
+  "stockQuantity": 8
+}
+```
+
+#### Cập nhật trạng thái
+
+```http
+PATCH /api/v1/admin/products/550e8400-e29b-41d4-a716-446655440000/status
+Content-Type: application/json
+```
+
+```json
+{
+  "productStatus": "ACTIVE"
+}
+```
+
+Giá trị trạng thái không phân biệt chữ hoa/chữ thường. Giá trị ngoài `ACTIVE` và `INACTIVE` trả lỗi `2403`.
+
+`DELETE /products/{id}` trả lỗi `2404` nếu sản phẩm đã ở trạng thái `INACTIVE`.
 
 Các endpoint tìm kiếm hỗ trợ tham số phân trang chuẩn của Spring Data như `page`, `size` và `sort`. Cấu hình hiện tại sử dụng số trang bắt đầu từ `1`.
 
@@ -159,7 +240,7 @@ Response thành công được bọc bởi `ApiResponse<T>`:
 }
 ```
 
-Các endpoint tạo Brand và Category hiện dùng mã kết quả `201`:
+Các endpoint tạo Brand, Category và Product hiện dùng mã kết quả `201` trong body:
 
 ```json
 {
@@ -169,7 +250,7 @@ Các endpoint tạo Brand và Category hiện dùng mã kết quả `201`:
 }
 ```
 
-`code` trong body là mã kết quả/nghiệp vụ. HTTP status vẫn được trả riêng ở status line của response.
+`code` trong body là mã kết quả/nghiệp vụ. HTTP status vẫn được trả riêng ở status line của response. Với implementation hiện tại, các method trong controller trả trực tiếp `ApiResponse` nên cả thao tác tạo và xóa cũng trả HTTP `200 OK`; mã `201` của thao tác tạo chỉ nằm trong body.
 
 ### Response phân trang
 

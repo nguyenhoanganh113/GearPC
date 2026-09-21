@@ -30,14 +30,13 @@ public class ProductController {
     @PostMapping
     public ApiResponse<CreateProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
         CreateProductResponse createProductResponse = productService.createProduct(request);
-        return ApiResponse.created("2500", "Sản phẩm được tạo thành công!", createProductResponse);
+        return ApiResponse.created(createProductResponse);
     }
 
     @GetMapping("/{id}")
     public ApiResponse<DetailProductResponse> getProductById(@NonNull @PathVariable UUID id) {
         DetailProductResponse response = productService.getProduct(id);
-        return ApiResponse
-                .ok("2500", "Lấy chi tiết sản phẩm thành công!", response);
+        return ApiResponse.success(response);
     }
 
     @GetMapping("/search")
@@ -47,12 +46,11 @@ public class ProductController {
                     sort = {"price"},
                     direction = Sort.Direction.DESC
             ) Pageable pageable,
-            ProductSearchRequest productSearchRequest
+            @Valid ProductSearchRequest productSearchRequest
     ) {
         PaginationResponse<DetailProductResponse> products =
                 productService.searchProductsForAdmin(productSearchRequest, pageable);
-        return ApiResponse
-                .ok("2500", "Tìm kiếm danh sách sản phẩm thành công", products);
+        return ApiResponse.success(products);
     }
 
     @PutMapping("/{id}")
@@ -61,7 +59,7 @@ public class ProductController {
             @Valid @RequestBody UpdateProductRequest request
     ) {
         UpdateProductResponse response = productService.updateProduct(id, request);
-        return ApiResponse.ok("2500", "Cập nhật sản phẩm thành công!", response);
+        return ApiResponse.success(response);
     }
 
     @PatchMapping("/{id}/status")
@@ -70,13 +68,13 @@ public class ProductController {
             @Valid @RequestBody UpdateProductStatusRequest request
     ) {
         UpdateProductResponse response = productService.updateProductStatus(id, request);
-        return ApiResponse.ok("2500", "Cập nhật trạng thái sản phẩm thành công!", response);
+        return ApiResponse.success(response);
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProduct(@NonNull @PathVariable UUID id) {
         productService.deleteProduct(id);
-        return ApiResponse.noContent("2500", "Xóa sản phẩm thành công!");
+        return ApiResponse.success();
     }
 
 }
