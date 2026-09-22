@@ -39,4 +39,8 @@ public class Category extends BaseEntity {
     @Builder.Default
     private List<Product> products = new ArrayList<>();
 
+    @OneToMany(mappedBy = "category")
+    @Builder.Default
+    private List<CategoryAttribute> categoryAttributes = new ArrayList<>();
+
 }
