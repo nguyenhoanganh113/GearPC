@@ -27,6 +27,7 @@ public enum ErrorCode {
     ATTRIBUTE_DEFINITION_NOT_FOUND(2601, "Thuộc tính không thể tìm thấy!", HttpStatus.NOT_FOUND),
     ATTRIBUTE_DEFINITION_EXISTS(2602, "Mã thuộc tính đã tồn tại", HttpStatus.CONFLICT),
 
+    CATEGORY_ATTRIBUTE_NOT_FOUND(2801, "Thuộc tính chưa được gán cho danh mục", HttpStatus.NOT_FOUND),
     CATEGORY_ATTRIBUTE_EXISTS(2802, "Thuộc tính đã tồn tại", HttpStatus.CONFLICT),
     ;
 
