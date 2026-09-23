@@ -15,8 +15,8 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAppException(AppException exception) {
-        return buildErrorResponse(exception.getErrorCode());
+    public ResponseEntity<ApiResponse<Object>> handleAppException(AppException exception) {
+        return buildErrorResponse(exception.getErrorCode(), exception.getData());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
