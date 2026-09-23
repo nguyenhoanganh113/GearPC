@@ -136,6 +136,8 @@ Payload cập nhật trạng thái bắt buộc:
 | `PUT` | `/products/{id}` | `200` | Cập nhật các field được gửi lên |
 | `PATCH` | `/products/{id}/status` | `200` | Cập nhật trạng thái |
 | `DELETE` | `/products/{id}` | `200` | Chuyển sang `INACTIVE` và ghi `deletedAt` |
+| `GET` | `/products/{productId}/attributes` | `200` | Lấy giá trị thuộc tính của sản phẩm |
+| `PUT` | `/products/{productId}/attributes` | `200` | Đồng bộ toàn bộ giá trị thuộc tính |
 
 ### Tạo sản phẩm
 
@@ -179,6 +181,62 @@ Payload đổi trạng thái:
   "productStatus": "ACTIVE"
 }
 ```
+
+### Giá trị thuộc tính sản phẩm
+
+`PUT /products/{productId}/attributes` đồng bộ toàn bộ tập giá trị trong một transaction. Giá trị không còn xuất hiện trong request sẽ bị xóa; giá trị đã tồn tại được cập nhật; giá trị mới được thêm vào.
+
+```http
+PUT /api/v1/admin/products/550e8400-e29b-41d4-a716-446655440000/attributes
+Content-Type: application/json
+```
+
+```json
+{
+  "attributes": [
+    {
+      "attributeDefinitionId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "value": "32"
+    },
+    {
+      "attributeDefinitionId": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+      "value": "true"
+    }
+  ]
+}
+```
+
+Quy tắc validation:
+
+- Product và category của product phải chưa bị soft delete.
+- Attribute phải active, chưa bị soft delete và đã được gán cho category.
+- Không được gửi trùng `attributeDefinitionId`.
+- Phải gửi đủ các attribute có `required=true`.
+- `NUMBER` phải là số hợp lệ, `BOOLEAN` nhận `true` hoặc `false`, `DATE` dùng ISO `yyyy-MM-dd`.
+- `TEXT` và `SELECT` hiện nhận chuỗi không rỗng; tập option cho `SELECT` chưa được quản lý trong model hiện tại.
+- Có thể gửi mảng rỗng để xóa toàn bộ giá trị nếu category không có attribute bắt buộc.
+
+`GET /products/{productId}/attributes` trả toàn bộ Attribute Definition active, chưa soft delete đã gán cho category. Attribute chưa có giá trị vẫn xuất hiện với `value: null`; field `required` cho biết input bắt buộc trên UI.
+
+Khi request có một hoặc nhiều attribute không hợp lệ, API trả `400 Bad Request` với mã `3005`. Mỗi phần tử trong `data` xác định attribute bị lỗi và nguyên nhân để client hiển thị đúng tại field tương ứng:
+
+```json
+{
+  "code": "3005",
+  "message": "Một hoặc nhiều thuộc tính sản phẩm không hợp lệ",
+  "data": [
+    {
+      "attributeDefinitionId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "attributeCode": "ram_capacity",
+      "attributeName": "Dung lượng RAM",
+      "rejectedValue": "32",
+      "reason": "INACTIVE"
+    }
+  ]
+}
+```
+
+`reason` có thể là `DUPLICATE`, `NOT_ALLOWED`, `DELETED`, `INACTIVE`, `INVALID_VALUE` hoặc `REQUIRED_MISSING`.
 
 ## Attribute Definition API
 
@@ -317,8 +375,14 @@ Lỗi nghiệp vụ, validation, JSON không hợp lệ và vi phạm ràng bu�
 | `2404` | `400 Bad Request` | Sản phẩm đã bị xóa hoặc đang `INACTIVE` khi gọi delete |
 | `2601` | `404 Not Found` | Không tìm thấy định nghĩa thuộc tính |
 | `2602` | `409 Conflict` | Mã định nghĩa thuộc tính đã tồn tại |
+| `2603` | `400 Bad Request` | Định nghĩa thuộc tính chưa được kích hoạt |
 | `2801` | `404 Not Found` | Thuộc tính chưa được gán cho danh mục |
 | `2802` | `409 Conflict` | Thuộc tính đã được gán cho danh mục |
+| `3001` | `400 Bad Request` | Thuộc tính không áp dụng cho category của product |
+| `3002` | `400 Bad Request` | Thiếu thuộc tính bắt buộc |
+| `3003` | `400 Bad Request` | Giá trị thuộc tính không đúng kiểu dữ liệu |
+| `3004` | `400 Bad Request` | Thuộc tính sản phẩm bị trùng trong request |
+| `3005` | `400 Bad Request` | Một hoặc nhiều thuộc tính sản phẩm không hợp lệ; `data` chứa chi tiết từng attribute |
 
 ## Ghi chú phát triển
 

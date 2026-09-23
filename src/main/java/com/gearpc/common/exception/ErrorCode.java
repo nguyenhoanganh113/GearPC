@@ -26,9 +26,16 @@ public enum ErrorCode {
 
     ATTRIBUTE_DEFINITION_NOT_FOUND(2601, "Thuộc tính không thể tìm thấy!", HttpStatus.NOT_FOUND),
     ATTRIBUTE_DEFINITION_EXISTS(2602, "Mã thuộc tính đã tồn tại", HttpStatus.CONFLICT),
+    ATTRIBUTE_DEFINITION_INACTIVE(2603, "Thuộc tính chưa được kích hoạt", HttpStatus.BAD_REQUEST),
 
     CATEGORY_ATTRIBUTE_NOT_FOUND(2801, "Thuộc tính chưa được gán cho danh mục", HttpStatus.NOT_FOUND),
     CATEGORY_ATTRIBUTE_EXISTS(2802, "Thuộc tính đã tồn tại", HttpStatus.CONFLICT),
+
+    PRODUCT_ATTRIBUTE_NOT_ALLOWED(3001, "Thuộc tính không áp dụng cho danh mục của sản phẩm", HttpStatus.BAD_REQUEST),
+    REQUIRED_PRODUCT_ATTRIBUTE_MISSING(3002, "Thiếu thuộc tính bắt buộc của sản phẩm", HttpStatus.BAD_REQUEST),
+    INVALID_PRODUCT_ATTRIBUTE_VALUE(3003, "Giá trị thuộc tính sản phẩm không đúng kiểu dữ liệu", HttpStatus.BAD_REQUEST),
+    DUPLICATE_PRODUCT_ATTRIBUTE(3004, "Thuộc tính sản phẩm bị trùng lặp", HttpStatus.BAD_REQUEST),
+    PRODUCT_ATTRIBUTE_VALIDATION_FAILED(3005, "Một hoặc nhiều thuộc tính sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

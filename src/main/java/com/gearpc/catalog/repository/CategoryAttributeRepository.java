@@ -19,6 +19,14 @@ public interface CategoryAttributeRepository extends JpaRepository<CategoryAttri
     );
 
     @EntityGraph(attributePaths = {"category", "attributeDefinition"})
+    List<CategoryAttribute> findAllByCategory_IdAndAttributeDefinition_ActiveTrueAndAttributeDefinition_DeletedAtIsNullOrderByAttributeDefinition_NameAsc(
+            UUID categoryId
+    );
+
+    @EntityGraph(attributePaths = {"category", "attributeDefinition"})
+    List<CategoryAttribute> findAllByCategory_Id(UUID categoryId);
+
+    @EntityGraph(attributePaths = {"category", "attributeDefinition"})
     Optional<CategoryAttribute> findByIdAndCategory_DeletedAtIsNullAndAttributeDefinition_DeletedAtIsNull(
             CategoryAttributeId id
     );

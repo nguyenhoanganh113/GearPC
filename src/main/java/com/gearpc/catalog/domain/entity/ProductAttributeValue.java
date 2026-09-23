@@ -25,7 +25,7 @@ public class ProductAttributeValue {
     @JoinColumn(name = "attribute_definition_id", nullable = false)
     private AttributeDefinition attributeDefinition;
 
-    @Column(name = "value", length = 36, nullable = false)
+    @Column(name = "value", columnDefinition = "TEXT", nullable = false)
     private String value;
 
     public ProductAttributeValue(Product product, AttributeDefinition attributeDefinition, String value) {
