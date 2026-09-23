@@ -97,7 +97,10 @@ Các endpoint search dùng số trang bắt đầu từ `1`. Tham số phân tra
 | `PUT` | `/categories/{id}` | `200` | Cập nhật |
 | `PATCH` | `/categories/{id}/status?active=true` | `200` | Đổi trạng thái |
 | `DELETE` | `/categories/{id}` | `204` | Soft delete |
-| `POST` | `/categories/{categoryId}/attributes` | `200` | Gán thuộc tính cho danh mục |
+| `POST` | `/categories/{categoryId}/attributes` | `201` | Gán thuộc tính cho danh mục |
+| `GET` | `/categories/{categoryId}/attributes` | `200` | Lấy thuộc tính của danh mục |
+| `PATCH` | `/categories/{categoryId}/attributes/{attributeDefinitionId}` | `200` | Cập nhật trạng thái bắt buộc |
+| `DELETE` | `/categories/{categoryId}/attributes/{attributeDefinitionId}` | `204` | Gỡ thuộc tính khỏi danh mục |
 
 Ví dụ gán thuộc tính:
 
@@ -114,6 +117,14 @@ Content-Type: application/json
 ```
 
 `required` cho biết sản phẩm thuộc danh mục có bắt buộc cung cấp giá trị cho thuộc tính hay không. Một thuộc tính không thể được gán lặp lại cho cùng một danh mục.
+
+Payload cập nhật trạng thái bắt buộc:
+
+```json
+{
+  "required": false
+}
+```
 
 ## Product API
 
@@ -251,7 +262,7 @@ Response tạo mới:
 }
 ```
 
-`code` trong body là mã kết quả ứng dụng, độc lập với HTTP status. Ví dụ endpoint gán thuộc tính cho danh mục hiện trả HTTP `200` nhưng body có code `201`.
+`code` trong body là mã kết quả ứng dụng, độc lập với HTTP status.
 
 Response phân trang:
 
@@ -306,6 +317,7 @@ Lỗi nghiệp vụ, validation, JSON không hợp lệ và vi phạm ràng bu�
 | `2404` | `400 Bad Request` | Sản phẩm đã bị xóa hoặc đang `INACTIVE` khi gọi delete |
 | `2601` | `404 Not Found` | Không tìm thấy định nghĩa thuộc tính |
 | `2602` | `409 Conflict` | Mã định nghĩa thuộc tính đã tồn tại |
+| `2801` | `404 Not Found` | Thuộc tính chưa được gán cho danh mục |
 | `2802` | `409 Conflict` | Thuộc tính đã được gán cho danh mục |
 
 ## Ghi chú phát triển

@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,7 +29,7 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
     @Transactional
     @Override
     public CategoryAttributeResponse assignAttribute(UUID categoryId, UUID attributeDefinitionId, boolean required) {
-        Category category = categoryRepository.findById(categoryId)
+        Category category = categoryRepository.findByIdAndDeletedAtIsNull(categoryId)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
         AttributeDefinition attributeDefinition =
@@ -43,17 +44,65 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
 
         CategoryAttribute categoryAttribute = new CategoryAttribute(category, attributeDefinition, required);
 
-        CategoryAttribute saved = categoryAttributeRepository.save(categoryAttribute);
+        return toResponse(categoryAttributeRepository.save(categoryAttribute));
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryAttributeResponse> getCategoryAttributes(UUID categoryId) {
+        categoryRepository.findByIdAndDeletedAtIsNull(categoryId)
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        return categoryAttributeRepository
+                .findAllByCategory_IdAndAttributeDefinition_DeletedAtIsNullOrderByAttributeDefinition_NameAsc(
+                        categoryId
+                )
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public CategoryAttributeResponse updateRequired(
+            UUID categoryId,
+            UUID attributeDefinitionId,
+            boolean required
+    ) {
+        CategoryAttribute categoryAttribute = findActiveCategoryAttribute(categoryId, attributeDefinitionId);
+        categoryAttribute.setRequired(required);
+        return toResponse(categoryAttribute);
+    }
+
+    @Override
+    @Transactional
+    public void removeAttribute(UUID categoryId, UUID attributeDefinitionId) {
+        categoryAttributeRepository.delete(findCategoryAttribute(categoryId, attributeDefinitionId));
+    }
+
+    private CategoryAttribute findActiveCategoryAttribute(UUID categoryId, UUID attributeDefinitionId) {
+        CategoryAttributeId id = new CategoryAttributeId(categoryId, attributeDefinitionId);
+        return categoryAttributeRepository
+                .findByIdAndCategory_DeletedAtIsNullAndAttributeDefinition_DeletedAtIsNull(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_ATTRIBUTE_NOT_FOUND));
+    }
+
+    private CategoryAttribute  findCategoryAttribute(UUID categoryId, UUID attributeDefinitionId) {
+        CategoryAttributeId id = new CategoryAttributeId(categoryId, attributeDefinitionId);
+        return categoryAttributeRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_ATTRIBUTE_NOT_FOUND));
+    }
+
+    private CategoryAttributeResponse toResponse(CategoryAttribute categoryAttribute) {
         return new CategoryAttributeResponse(
-                saved.getCategory().getId(),
-                saved.getCategory().getName(),
-                saved.getAttributeDefinition().getId(),
-                saved.getAttributeDefinition().getName(),
-                saved.getAttributeDefinition().getCode(),
-                saved.getAttributeDefinition().getUnit(),
-                saved.getAttributeDefinition().getDataType(),
-                saved.isRequired()
+                categoryAttribute.getCategory().getId(),
+                categoryAttribute.getCategory().getName(),
+                categoryAttribute.getAttributeDefinition().getId(),
+                categoryAttribute.getAttributeDefinition().getName(),
+                categoryAttribute.getAttributeDefinition().getCode(),
+                categoryAttribute.getAttributeDefinition().getUnit(),
+                categoryAttribute.getAttributeDefinition().getDataType(),
+                categoryAttribute.isRequired()
         );
     }
 }
