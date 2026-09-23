@@ -1,98 +1,64 @@
 # GearPC Backend API
 
-GearPC là REST API cho hệ thống thương mại điện tử linh kiện máy tính. Dự án hiện được tổ chức theo hướng modular monolith; module Catalog đã triển khai các nghiệp vụ quản lý thương hiệu, danh mục và sản phẩm.
+GearPC là REST API cho hệ thống thương mại điện tử linh kiện máy tính. Dự án được tổ chức theo hướng modular monolith. Module Catalog hiện hỗ trợ thương hiệu, danh mục, sản phẩm, định nghĩa thuộc tính và quan hệ thuộc tính của danh mục.
 
 ## Công nghệ
 
-- Java 21
-- Spring Boot 4.1.1
-- Spring Web MVC
-- Spring Data JPA và Hibernate
-- Jakarta Validation
-- PostgreSQL 16
-- Redis 7
-- MapStruct và Lombok
-- Maven Wrapper
-- Docker Compose
+- Java 21, Spring Boot 4.1.1
+- Spring Web MVC, Spring Data JPA, Hibernate
+- Jakarta Validation, MapStruct, Lombok
+- PostgreSQL 16, Redis 7
+- Maven Wrapper, Docker Compose
 
-## Cấu trúc chính
+## Cấu trúc dự án
 
 ```text
 src/main/java/com/gearpc
 ├── catalog
 │   ├── application     # DTO, mapper và service
-│   ├── controller      # REST endpoints
-│   ├── domain          # Entity và value object
+│   ├── controller      # REST controller
+│   ├── domain          # Entity, composite key và enum
 │   └── repository      # JPA repository và specification
-├── common
-│   ├── annotation      # Custom validation
-│   ├── dto             # API response và pagination
-│   ├── entity          # Base entity và auditing
-│   ├── exception       # ErrorCode và global exception handler
-│   └── util            # Tiện ích dùng chung
-├── identity            # Khung module định danh
-├── order               # Khung module đơn hàng
-├── payment             # Khung module thanh toán
-└── infrastructure      # Khung tích hợp hạ tầng
+├── common              # Response, validation, auditing và exception
+├── identity
+├── order
+├── payment
+└── infrastructure
 ```
-
-## Yêu cầu
-
-- JDK 21
-- Docker Desktop hoặc Docker Engine có Docker Compose
-
-Không cần cài Maven, PostgreSQL hoặc Redis trực tiếp trên máy vì dự án đã có Maven Wrapper và `compose.yaml`.
 
 ## Khởi chạy
 
-### Cách 1: để Spring Boot quản lý Docker Compose
+Yêu cầu JDK 21 và Docker Desktop hoặc Docker Engine có Docker Compose.
 
-Đảm bảo Docker đang chạy, sau đó:
+Để Spring Boot tự quản lý các container:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Spring Boot sẽ đọc `compose.yaml`, khởi động PostgreSQL và Redis cùng ứng dụng, sau đó dừng các container khi ứng dụng dừng.
-
-### Cách 2: khởi động hạ tầng riêng
+Hoặc khởi động hạ tầng riêng:
 
 ```bash
 docker compose up -d
 ./mvnw spring-boot:run
 ```
 
-Các dịch vụ mặc định:
-
-| Dịch vụ | Địa chỉ |
+| Dịch vụ | Địa chỉ mặc định |
 |---|---|
 | API | `http://localhost:8086` |
 | PostgreSQL | `localhost:5435` |
 | Redis | `localhost:6378` |
 
-Cấu hình phát triển hiện nằm trong `src/main/resources/application.yaml`:
+Cấu hình database phát triển là `gearpc_db`, user `postgres`, password `123456`. Không sử dụng trực tiếp cấu hình này cho production.
 
-```text
-Database: gearpc_db
-Username: postgres
-Password: 123456
-```
-
-Các thông tin này chỉ phù hợp với môi trường phát triển cục bộ. Không sử dụng trực tiếp cho production.
-
-## Kiểm tra dự án
+## Kiểm tra
 
 ```bash
 ./mvnw test
-```
-
-Chỉ compile mà không chạy test:
-
-```bash
 ./mvnw -DskipTests compile
 ```
 
-## API Catalog
+## Quy ước API
 
 Base URL:
 
@@ -100,48 +66,67 @@ Base URL:
 http://localhost:8086/api/v1/admin
 ```
 
-### Brand
+Các endpoint search dùng số trang bắt đầu từ `1`. Tham số phân trang chung:
 
-| Method | Endpoint | Mô tả |
-|---|---|---|
-| `POST` | `/brands` | Tạo thương hiệu |
-| `GET` | `/brands/search` | Tìm kiếm và phân trang thương hiệu |
-| `GET` | `/brands/options` | Lấy thương hiệu đang hoạt động, sắp xếp theo tên |
-| `GET` | `/brands/{id}` | Lấy chi tiết thương hiệu |
-| `PUT` | `/brands/{id}` | Cập nhật thương hiệu |
-| `PATCH` | `/brands/{id}/status?active=true` | Thay đổi trạng thái hoạt động |
-| `DELETE` | `/brands/{id}` | Xóa thương hiệu |
+| Tham số | Mô tả |
+|---|---|
+| `page` | Số trang |
+| `size` | Số phần tử mỗi trang, mặc định `15` |
+| `sort` | Định dạng `field,direction`, ví dụ `name,asc` |
 
-Mỗi phần tử từ `/brands/options` gồm `id`, `name` và `slug`.
+## Brand API
 
-### Category
+| Method | Endpoint | HTTP | Mô tả |
+|---|---|---|---|
+| `POST` | `/brands` | `201` | Tạo thương hiệu |
+| `GET` | `/brands/{id}` | `200` | Lấy chi tiết |
+| `GET` | `/brands/search` | `200` | Tìm theo `keyword`, `active` và phân trang |
+| `GET` | `/brands/options` | `200` | Lấy thương hiệu active, chưa bị xóa |
+| `PUT` | `/brands/{id}` | `200` | Cập nhật |
+| `PATCH` | `/brands/{id}/status?active=true` | `200` | Đổi trạng thái |
+| `DELETE` | `/brands/{id}` | `204` | Soft delete |
 
-| Method | Endpoint | Mô tả |
-|---|---|---|
-| `POST` | `/categories` | Tạo danh mục |
-| `GET` | `/categories/search` | Tìm kiếm và phân trang danh mục |
-| `GET` | `/categories/options` | Lấy danh mục đang hoạt động, sắp xếp theo tên |
-| `PUT` | `/categories/{id}` | Cập nhật danh mục |
-| `PATCH` | `/categories/{id}/status?active=true` | Thay đổi trạng thái hoạt động |
-| `DELETE` | `/categories/{id}` | Xóa danh mục |
+## Category API
 
-### Product
+| Method | Endpoint | HTTP | Mô tả |
+|---|---|---|---|
+| `POST` | `/categories` | `201` | Tạo danh mục |
+| `GET` | `/categories/{id}` | `200` | Lấy chi tiết |
+| `GET` | `/categories/search` | `200` | Tìm theo `keyword`, `active` và phân trang |
+| `GET` | `/categories/options` | `200` | Lấy danh mục active, chưa bị xóa |
+| `PUT` | `/categories/{id}` | `200` | Cập nhật |
+| `PATCH` | `/categories/{id}/status?active=true` | `200` | Đổi trạng thái |
+| `DELETE` | `/categories/{id}` | `204` | Soft delete |
+| `POST` | `/categories/{categoryId}/attributes` | `200` | Gán thuộc tính cho danh mục |
 
-| Method | Endpoint | Mô tả |
-|---|---|---|
-| `POST` | `/products` | Tạo sản phẩm mới với trạng thái mặc định `INACTIVE` |
-| `GET` | `/products/{id}` | Lấy chi tiết sản phẩm |
-| `GET` | `/products/search` | Tìm kiếm, lọc và phân trang sản phẩm |
-| `PUT` | `/products/{id}` | Cập nhật một phần thông tin sản phẩm; các field không gửi lên được giữ nguyên |
-| `PATCH` | `/products/{id}/status` | Cập nhật trạng thái `ACTIVE` hoặc `INACTIVE` |
-| `DELETE` | `/products/{id}` | Soft delete sản phẩm bằng cách chuyển sang `INACTIVE` và ghi nhận `deletedAt` |
-
-#### Tạo sản phẩm
+Ví dụ gán thuộc tính:
 
 ```http
-POST /api/v1/admin/products
+POST /api/v1/admin/categories/550e8400-e29b-41d4-a716-446655440000/attributes
 Content-Type: application/json
 ```
+
+```json
+{
+  "attributeDefinitionId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "required": true
+}
+```
+
+`required` cho biết sản phẩm thuộc danh mục có bắt buộc cung cấp giá trị cho thuộc tính hay không. Một thuộc tính không thể được gán lặp lại cho cùng một danh mục.
+
+## Product API
+
+| Method | Endpoint | HTTP | Mô tả |
+|---|---|---|---|
+| `POST` | `/products` | `200` | Tạo sản phẩm, mặc định `INACTIVE` |
+| `GET` | `/products/{id}` | `200` | Lấy chi tiết |
+| `GET` | `/products/search` | `200` | Tìm kiếm, lọc và phân trang |
+| `PUT` | `/products/{id}` | `200` | Cập nhật các field được gửi lên |
+| `PATCH` | `/products/{id}/status` | `200` | Cập nhật trạng thái |
+| `DELETE` | `/products/{id}` | `200` | Chuyển sang `INACTIVE` và ghi `deletedAt` |
+
+### Tạo sản phẩm
 
 ```json
 {
@@ -156,56 +141,27 @@ Content-Type: application/json
 }
 ```
 
-Các field bắt buộc gồm `name`, `price` (lớn hơn `0`), `stockQuantity` (không âm), `categoryId` và `brandId`. `sku`, `description` và `images` là tùy chọn. Tên hoặc SKU trùng với sản phẩm đã tồn tại trả lỗi `2402`.
+`name`, `price`, `stockQuantity`, `categoryId` và `brandId` là bắt buộc. Giá phải lớn hơn `0`; tồn kho không được âm.
 
-#### Tìm kiếm sản phẩm
-
-`GET /products/search` nhận các query parameter sau:
+### Tìm kiếm sản phẩm
 
 | Tham số | Kiểu | Mô tả |
 |---|---|---|
-| `keyword` | `string` | Từ khóa tìm kiếm, tối đa 150 ký tự |
+| `keyword` | `string` | Tìm theo tên hoặc SKU, tối đa 150 ký tự |
 | `categoryId` | `UUID` | Lọc theo danh mục |
 | `brandId` | `UUID` | Lọc theo thương hiệu |
 | `productStatus` | `enum` | `ACTIVE` hoặc `INACTIVE` |
-| `minPrice` | `decimal` | Giá tối thiểu, không âm |
-| `maxPrice` | `decimal` | Giá tối đa, không âm và không nhỏ hơn `minPrice` |
-| `inStock` | `boolean` | `true` để chỉ lấy sản phẩm còn hàng |
-| `sortBy` | `enum` | `NAME_ASC`, `NAME_DESC`, `PRICE_ASC`, `PRICE_DESC`, `CREATED_AT_ASC` hoặc `CREATED_AT_DESC` |
-| `page` | `integer` | Số trang, bắt đầu từ `1` |
-| `size` | `integer` | Số phần tử mỗi trang, mặc định `15` |
-| `sort` | `string` | Sắp xếp chuẩn Spring Data, ví dụ `price,asc`; mặc định `price,desc` khi không có `sortBy` |
-
-Khi có `sortBy`, giá trị này được ưu tiên hơn `sort`. Kết quả còn được sắp xếp phụ theo `id` giảm dần để giữ thứ tự ổn định.
-
-Ví dụ:
+| `minPrice`, `maxPrice` | `decimal` | Khoảng giá không âm |
+| `inStock` | `boolean` | `true`: còn hàng; `false`: hết hàng |
+| `sortBy` | `enum` | `NAME_ASC`, `NAME_DESC`, `PRICE_ASC`, `PRICE_DESC`, `CREATED_AT_ASC`, `CREATED_AT_DESC` |
 
 ```http
 GET /api/v1/admin/products/search?keyword=asus&productStatus=ACTIVE&minPrice=1000000&maxPrice=50000000&inStock=true&sortBy=PRICE_ASC&page=1&size=15
 ```
 
-#### Cập nhật sản phẩm
+Khi có `sortBy`, giá trị này được ưu tiên hơn `sort`. Search luôn loại sản phẩm có `deletedAt` khác `null`.
 
-`PUT /products/{id}` nhận JSON với các field tùy chọn: `name`, `sku`, `description`, `price`, `stockQuantity`, `images`, `categoryId` và `brandId`. Field không xuất hiện hoặc chuỗi rỗng sau khi loại khoảng trắng sẽ không thay đổi dữ liệu hiện tại.
-
-```http
-PUT /api/v1/admin/products/550e8400-e29b-41d4-a716-446655440000
-Content-Type: application/json
-```
-
-```json
-{
-  "price": 41990000,
-  "stockQuantity": 8
-}
-```
-
-#### Cập nhật trạng thái
-
-```http
-PATCH /api/v1/admin/products/550e8400-e29b-41d4-a716-446655440000/status
-Content-Type: application/json
-```
+Payload đổi trạng thái:
 
 ```json
 {
@@ -213,34 +169,79 @@ Content-Type: application/json
 }
 ```
 
-Giá trị trạng thái không phân biệt chữ hoa/chữ thường. Giá trị ngoài `ACTIVE` và `INACTIVE` trả lỗi `2403`.
+## Attribute Definition API
 
-`DELETE /products/{id}` trả lỗi `2404` nếu sản phẩm đã ở trạng thái `INACTIVE`.
+| Method | Endpoint | HTTP | Mô tả |
+|---|---|---|---|
+| `POST` | `/attribute-definitions` | `201` | Tạo định nghĩa thuộc tính |
+| `GET` | `/attribute-definitions/{id}` | `200` | Lấy chi tiết |
+| `GET` | `/attribute-definitions/search` | `200` | Tìm kiếm, lọc và phân trang |
+| `GET` | `/attribute-definitions/options` | `200` | Lấy thuộc tính active, chưa bị xóa |
+| `PUT` | `/attribute-definitions/{id}` | `200` | Cập nhật |
+| `PATCH` | `/attribute-definitions/{id}/status?active=true` | `200` | Đổi trạng thái |
+| `DELETE` | `/attribute-definitions/{id}` | `204` | Soft delete |
 
-Các endpoint tìm kiếm hỗ trợ tham số phân trang chuẩn của Spring Data như `page`, `size` và `sort`. Cấu hình hiện tại sử dụng số trang bắt đầu từ `1`.
-
-Ví dụ:
+### Tạo định nghĩa thuộc tính
 
 ```http
-GET /api/v1/admin/brands/search?keyword=asus&active=true&page=1&size=15
+POST /api/v1/admin/attribute-definitions
+Content-Type: application/json
 ```
 
-## Cấu trúc response
+```json
+{
+  "name": "Dung lượng RAM",
+  "code": "ram_capacity",
+  "unit": "GB",
+  "dataType": "NUMBER"
+}
+```
 
-Response thành công được bọc bởi `ApiResponse<T>`:
+`name`, `code` và `dataType` là bắt buộc; `code` phải duy nhất. `dataType` nhận một trong các giá trị:
+
+```text
+TEXT, NUMBER, BOOLEAN, DATE, SELECT
+```
+
+### Tìm kiếm định nghĩa thuộc tính
+
+| Tham số | Kiểu | Mô tả |
+|---|---|---|
+| `keyword` | `string` | Tìm theo tên hoặc code |
+| `active` | `boolean` | Lọc theo trạng thái |
+| `dataType` | `enum` | Lọc theo kiểu dữ liệu |
+| `page`, `size`, `sort` | pagination | Mặc định sort theo `createdAt,desc` và `id,desc` |
+
+```http
+GET /api/v1/admin/attribute-definitions/search?keyword=ram&active=true&dataType=NUMBER&page=1&size=15&sort=name,asc
+```
+
+Search và options luôn loại bản ghi đã soft delete. Options được sắp xếp theo tên tăng dần.
+
+Payload cập nhật có thể chứa một hoặc nhiều field:
+
+```json
+{
+  "name": "Dung lượng bộ nhớ RAM",
+  "code": "memory_capacity",
+  "unit": "GiB",
+  "dataType": "NUMBER"
+}
+```
+
+## Response
+
+Response thành công:
 
 ```json
 {
   "code": "200",
   "message": "Thành công",
-  "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "ASUS"
-  }
+  "data": {}
 }
 ```
 
-Các endpoint tạo Brand, Category và Product hiện dùng mã kết quả `201` trong body:
+Response tạo mới:
 
 ```json
 {
@@ -250,9 +251,9 @@ Các endpoint tạo Brand, Category và Product hiện dùng mã kết quả `20
 }
 ```
 
-`code` trong body là mã kết quả/nghiệp vụ. HTTP status vẫn được trả riêng ở status line của response. Với implementation hiện tại, các method trong controller trả trực tiếp `ApiResponse` nên cả thao tác tạo và xóa cũng trả HTTP `200 OK`; mã `201` của thao tác tạo chỉ nằm trong body.
+`code` trong body là mã kết quả ứng dụng, độc lập với HTTP status. Ví dụ endpoint gán thuộc tính cho danh mục hiện trả HTTP `200` nhưng body có code `201`.
 
-### Response phân trang
+Response phân trang:
 
 ```json
 {
@@ -272,22 +273,7 @@ Các endpoint tạo Brand, Category và Product hiện dùng mã kết quả `20
 
 ## Xử lý lỗi
 
-`GlobalExceptionHandler` chuyển lỗi nghiệp vụ, lỗi validation, JSON không hợp lệ và lỗi ràng buộc dữ liệu thành `ApiResponse` với HTTP status phù hợp.
-
-Ví dụ không tìm thấy thương hiệu:
-
-```http
-HTTP/1.1 404 Not Found
-```
-
-```json
-{
-  "code": "2001",
-  "message": "Thương hiệu không thể tìm thấy!"
-}
-```
-
-Khi request vi phạm annotation validation, `data` chứa lỗi theo từng field:
+Lỗi nghiệp vụ, validation, JSON không hợp lệ và vi phạm ràng buộc dữ liệu được chuyển thành `ApiResponse` với HTTP status tương ứng.
 
 ```json
 {
@@ -296,7 +282,7 @@ Khi request vi phạm annotation validation, `data` chứa lỗi theo từng fie
   "data": [
     {
       "field": "name",
-      "message": "Name is required"
+      "message": "Tên thuộc tính không được để trống"
     }
   ]
 }
@@ -317,10 +303,13 @@ Khi request vi phạm annotation validation, `data` chứa lỗi theo từng fie
 | `2401` | `404 Not Found` | Không tìm thấy sản phẩm |
 | `2402` | `409 Conflict` | Sản phẩm đã tồn tại |
 | `2403` | `400 Bad Request` | Trạng thái sản phẩm không hợp lệ |
-| `2404` | `400 Bad Request` | Sản phẩm đã bị xóa |
+| `2404` | `400 Bad Request` | Sản phẩm đã bị xóa hoặc đang `INACTIVE` khi gọi delete |
+| `2601` | `404 Not Found` | Không tìm thấy định nghĩa thuộc tính |
+| `2602` | `409 Conflict` | Mã định nghĩa thuộc tính đã tồn tại |
+| `2802` | `409 Conflict` | Thuộc tính đã được gán cho danh mục |
 
 ## Ghi chú phát triển
 
-- Hibernate đang dùng `ddl-auto: update`; nên chuyển sang Flyway hoặc Liquibase trước khi triển khai production.
-- `open-in-view` đã tắt, vì vậy dữ liệu cần thiết nên được ánh xạ sang DTO trong service.
-- Các module Identity, Order, Payment và một số tích hợp hạ tầng hiện mới là cấu trúc chuẩn bị cho phát triển tiếp theo.
+- Hibernate đang dùng `ddl-auto: update`; nên chuyển sang Flyway hoặc Liquibase trước production.
+- `open-in-view` đã tắt; quan hệ lazy cần được ánh xạ sang DTO trong transaction.
+- Các module Identity, Order, Payment và một số tích hợp hạ tầng hiện mới là cấu trúc chuẩn bị.
