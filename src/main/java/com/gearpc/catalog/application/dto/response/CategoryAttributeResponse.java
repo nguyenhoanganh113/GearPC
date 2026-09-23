@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public record CategoryAttributeResponse(
         UUID categoryId,
+        String categoryName,
         UUID attributeDefinitionId,
         String attributeName,
         String attributeCode,

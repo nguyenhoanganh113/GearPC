@@ -32,7 +32,7 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
         AttributeDefinition attributeDefinition =
-                attributeDefinitionRepository.findById(attributeDefinitionId)
+                attributeDefinitionRepository.findByIdAndDeletedAtIsNull(attributeDefinitionId)
                         .orElseThrow(() -> new AppException(ErrorCode.ATTRIBUTE_DEFINITION_NOT_FOUND));
 
         CategoryAttributeId id = new CategoryAttributeId(categoryId, attributeDefinitionId);
@@ -47,6 +47,7 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
 
         return new CategoryAttributeResponse(
                 saved.getCategory().getId(),
+                saved.getCategory().getName(),
                 saved.getAttributeDefinition().getId(),
                 saved.getAttributeDefinition().getName(),
                 saved.getAttributeDefinition().getCode(),

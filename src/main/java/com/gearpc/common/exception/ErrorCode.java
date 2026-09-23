@@ -24,8 +24,10 @@ public enum ErrorCode {
     INVALID_PRODUCT_STATUS(2403, "Trạng thái sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST),
     PRODUCT_ALREADY_DELETED(2404, "Sản phẩm đã bị xóa", HttpStatus.BAD_REQUEST),
 
-    ATTRIBUTE_DEFINITION_NOT_FOUND(2501, "Thuộc tính không thể tìm thấy!", HttpStatus.NOT_FOUND),
-    CATEGORY_ATTRIBUTE_EXISTS(2502, "Thuộc tính đã tồn tại", HttpStatus.CONFLICT),
+    ATTRIBUTE_DEFINITION_NOT_FOUND(2601, "Thuộc tính không thể tìm thấy!", HttpStatus.NOT_FOUND),
+    ATTRIBUTE_DEFINITION_EXISTS(2602, "Mã thuộc tính đã tồn tại", HttpStatus.CONFLICT),
+
+    CATEGORY_ATTRIBUTE_EXISTS(2802, "Thuộc tính đã tồn tại", HttpStatus.CONFLICT),
     ;
 
     private final int code;
