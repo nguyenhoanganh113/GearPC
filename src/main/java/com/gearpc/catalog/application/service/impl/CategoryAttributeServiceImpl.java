@@ -100,12 +100,6 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_ATTRIBUTE_NOT_FOUND));
     }
 
-    private CategoryAttribute  findCategoryAttribute(UUID categoryId, UUID attributeDefinitionId) {
-        CategoryAttributeId id = new CategoryAttributeId(categoryId, attributeDefinitionId);
-        return categoryAttributeRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_ATTRIBUTE_NOT_FOUND));
-    }
-
     private CategoryAttributeResponse toResponse(CategoryAttribute categoryAttribute) {
         return new CategoryAttributeResponse(
                 categoryAttribute.getCategory().getId(),
