@@ -17,4 +17,6 @@ public interface ProductAttributeValueRepository
     List<ProductAttributeValue> findAllByProduct_IdOrderByAttributeDefinition_NameAsc(UUID productId);
 
     boolean existsByProduct_Category_IdAndAttributeDefinition_Id(UUID categoryId, UUID attributeDefinitionId);
+
+    boolean existByProduct_Id(UUID productId);
 }

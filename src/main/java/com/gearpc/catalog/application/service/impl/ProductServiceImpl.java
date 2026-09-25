@@ -15,6 +15,7 @@ import com.gearpc.catalog.domain.entity.Product;
 import com.gearpc.catalog.domain.valueobject.enums.ProductStatus;
 import com.gearpc.catalog.repository.BrandRepository;
 import com.gearpc.catalog.repository.CategoryRepository;
+import com.gearpc.catalog.repository.ProductAttributeValueRepository;
 import com.gearpc.catalog.repository.ProductRepository;
 import com.gearpc.catalog.repository.specification.ProductSpecification;
 import com.gearpc.common.dto.PaginationResponse;
@@ -45,6 +46,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
     private final ProductMapper productMapper;
+    private final ProductAttributeValueRepository productAttributeValueRepository;
 
     @Override
     public CreateProductResponse createProduct(CreateProductRequest request) {
@@ -155,7 +157,16 @@ public class ProductServiceImpl implements ProductService {
         Optional.ofNullable(request.stockQuantity()).ifPresent(product::setStockQuantity);
         Optional.ofNullable(request.images()).ifPresent(product::setImages);
         Optional.ofNullable(request.categoryId()).ifPresent(categoryId -> {
-            Category category = categoryRepository.findById(categoryId)
+            if (categoryId.equals(product.getCategory().getId())) {
+                return;
+            }
+
+            if (productAttributeValueRepository.existByProduct_Id(product.getId())) {
+                throw new AppException(ErrorCode.PRODUCT_CATEGORY_CHANGE_NOT_ALLOWED);
+            }
+
+            Category category = categoryRepository
+                    .findByIdAndActiveTrueAndDeletedAtIsNull(categoryId)
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
             product.setCategory(category);
         });
