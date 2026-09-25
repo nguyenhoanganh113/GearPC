@@ -9,6 +9,7 @@ import com.gearpc.catalog.domain.valueobject.CategoryAttributeId;
 import com.gearpc.catalog.repository.AttributeDefinitionRepository;
 import com.gearpc.catalog.repository.CategoryAttributeRepository;
 import com.gearpc.catalog.repository.CategoryRepository;
+import com.gearpc.catalog.repository.ProductAttributeValueRepository;
 import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
     private final CategoryRepository categoryRepository;
     private final AttributeDefinitionRepository attributeDefinitionRepository;
     private final CategoryAttributeRepository categoryAttributeRepository;
+    private final ProductAttributeValueRepository productAttributeValueRepository;
 
     @Transactional
     @Override
@@ -33,7 +35,7 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
         AttributeDefinition attributeDefinition =
-                attributeDefinitionRepository.findByIdAndDeletedAtIsNull(attributeDefinitionId)
+                attributeDefinitionRepository.findByIdAndActiveTrueAndDeletedAtIsNull(attributeDefinitionId)
                         .orElseThrow(() -> new AppException(ErrorCode.ATTRIBUTE_DEFINITION_NOT_FOUND));
 
         CategoryAttributeId id = new CategoryAttributeId(categoryId, attributeDefinitionId);
@@ -77,19 +79,24 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
     @Override
     @Transactional
     public void removeAttribute(UUID categoryId, UUID attributeDefinitionId) {
-        categoryAttributeRepository.delete(findCategoryAttribute(categoryId, attributeDefinitionId));
+        CategoryAttribute categoryAttribute =
+                findActiveCategoryAttribute(categoryId, attributeDefinitionId);
+
+        if (productAttributeValueRepository
+                .existsByProduct_Category_IdAndAttributeDefinition_Id(
+                        categoryId,
+                        attributeDefinitionId
+                )) {
+            throw new AppException(ErrorCode.CATEGORY_ATTRIBUTE_IN_USE);
+        }
+
+        categoryAttributeRepository.delete(categoryAttribute);
     }
 
     private CategoryAttribute findActiveCategoryAttribute(UUID categoryId, UUID attributeDefinitionId) {
         CategoryAttributeId id = new CategoryAttributeId(categoryId, attributeDefinitionId);
         return categoryAttributeRepository
                 .findByIdAndCategory_DeletedAtIsNullAndAttributeDefinition_DeletedAtIsNull(id)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_ATTRIBUTE_NOT_FOUND));
-    }
-
-    private CategoryAttribute  findCategoryAttribute(UUID categoryId, UUID attributeDefinitionId) {
-        CategoryAttributeId id = new CategoryAttributeId(categoryId, attributeDefinitionId);
-        return categoryAttributeRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_ATTRIBUTE_NOT_FOUND));
     }
 

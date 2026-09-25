@@ -15,7 +15,9 @@ public interface AttributeDefinitionRepository extends JpaRepository<AttributeDe
 
     boolean existsByCodeIgnoreCase(String code);
 
-    Optional<AttributeDefinition> findByIdAndDeletedAtIsNull(UUID id);
+    Optional<AttributeDefinition> findByIdAndDeletedAtIsNull(UUID attributeId);
+
+    Optional<AttributeDefinition> findByIdAndActiveTrueAndDeletedAtIsNull(UUID attributeId);
 
     List<AttributeDefinition> findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc();
 }
