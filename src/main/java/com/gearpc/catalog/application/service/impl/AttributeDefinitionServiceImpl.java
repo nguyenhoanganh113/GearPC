@@ -44,7 +44,7 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
     @Override
     @Transactional(readOnly = true)
     public AttributeDefinitionResponse getAttributeDefinition(UUID id) {
-        return attributeDefinitionMapper.toResponse(findActiveRecord(id));
+        return attributeDefinitionMapper.toResponse(findExistingAttribute(id));
     }
 
     @Override
@@ -93,7 +93,7 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
             UUID id,
             UpdateAttributeDefinitionRequest request
     ) {
-        AttributeDefinition attributeDefinition = findActiveRecord(id);
+        AttributeDefinition attributeDefinition = findExistingAttribute(id);
 
         if (request.name() != null) {
             attributeDefinition.setName(request.name());
@@ -115,7 +115,7 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
     @Override
     @Transactional
     public AttributeDefinitionResponse updateAttributeDefinitionStatus(UUID id, Boolean active) {
-        AttributeDefinition attributeDefinition = findActiveRecord(id);
+        AttributeDefinition attributeDefinition = findExistingAttribute(id);
         Optional.ofNullable(active).ifPresent(attributeDefinition::setActive);
         return attributeDefinitionMapper.toResponse(attributeDefinition);
     }
@@ -123,10 +123,10 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
     @Override
     @Transactional
     public void deleteAttributeDefinition(UUID id) {
-        findActiveRecord(id).softDelete();
+        findExistingAttribute(id).softDelete();
     }
 
-    private AttributeDefinition findActiveRecord(UUID id) {
+    private AttributeDefinition findExistingAttribute(UUID id) {
         return attributeDefinitionRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ATTRIBUTE_DEFINITION_NOT_FOUND));
     }
