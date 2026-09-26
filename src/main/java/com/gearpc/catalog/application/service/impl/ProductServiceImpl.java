@@ -6,12 +6,12 @@ import com.gearpc.catalog.application.dto.request.UpdateProductRequest;
 import com.gearpc.catalog.application.dto.request.UpdateProductStatusRequest;
 import com.gearpc.catalog.application.dto.response.CreateProductResponse;
 import com.gearpc.catalog.application.dto.response.DetailProductResponse;
+import com.gearpc.catalog.application.dto.response.ProductAttributeValidationErrorResponse;
 import com.gearpc.catalog.application.dto.response.UpdateProductResponse;
 import com.gearpc.catalog.application.mapper.ProductMapper;
 import com.gearpc.catalog.application.service.ProductService;
-import com.gearpc.catalog.domain.entity.Brand;
-import com.gearpc.catalog.domain.entity.Category;
-import com.gearpc.catalog.domain.entity.Product;
+import com.gearpc.catalog.domain.entity.*;
+import com.gearpc.catalog.domain.valueobject.enums.ProductAttributeValidationReason;
 import com.gearpc.catalog.domain.valueobject.enums.ProductStatus;
 import com.gearpc.catalog.repository.*;
 import com.gearpc.catalog.repository.specification.ProductSpecification;
@@ -31,7 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -202,15 +204,44 @@ public class ProductServiceImpl implements ProductService {
                     throw new AppException(ErrorCode.BRAND_INACTIVE);
                 }
 
-                boolean missingRequiredAttributes =
-                        categoryAttributeRepository
-                                .existsMissingRequiredAttribute(
-                                        product.getId(),
-                                        category.getId()
-                                );
+                List<CategoryAttribute> requiredAttributes = categoryAttributeRepository
+                        .findAllByCategory_IdAndAttributeDefinition_ActiveTrueAndAttributeDefinition_DeletedAtIsNullOrderByAttributeDefinition_NameAsc(
+                                category.getId()
+                        )
+                        .stream()
+                        .filter(CategoryAttribute::isRequired)
+                        .toList();
 
-                if (missingRequiredAttributes) {
-                    throw new AppException(ErrorCode.REQUIRED_PRODUCT_ATTRIBUTE_MISSING);
+                Set<UUID> providedAttributeIds = productAttributeValueRepository
+                        .findAllByProduct_IdOrderByAttributeDefinition_NameAsc(product.getId())
+                        .stream()
+                        .map(value -> value.getAttributeDefinition().getId())
+                        .collect(Collectors.toSet());
+
+                List<ProductAttributeValidationErrorResponse> missingAttributes = requiredAttributes.stream()
+                        .filter(categoryAttribute ->
+                                !providedAttributeIds.contains(
+                                        categoryAttribute.getAttributeDefinition().getId()
+                                )
+                        )
+                        .map(categoryAttribute -> {
+                            AttributeDefinition definition =
+                                    categoryAttribute.getAttributeDefinition();
+                            return new ProductAttributeValidationErrorResponse(
+                                    definition.getId(),
+                                    definition.getCode(),
+                                    definition.getName(),
+                                    null,
+                                    ProductAttributeValidationReason.REQUIRED_MISSING
+                            );
+                        })
+                        .toList();
+
+                if (!missingAttributes.isEmpty()) {
+                    throw new AppException(
+                            ErrorCode.REQUIRED_PRODUCT_ATTRIBUTE_MISSING,
+                            missingAttributes
+                    );
                 }
             }
 
