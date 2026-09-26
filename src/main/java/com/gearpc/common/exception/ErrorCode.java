@@ -24,7 +24,6 @@ public enum ErrorCode {
     PRODUCT_NOT_FOUND(2401, "Sản phẩm không thể tìm thấy!", HttpStatus.NOT_FOUND),
     PRODUCT_EXISTS(2402, "Sản phẩm đã tồn tại", HttpStatus.CONFLICT),
     INVALID_PRODUCT_STATUS(2403, "Trạng thái sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST),
-    PRODUCT_ALREADY_DELETED(2404, "Sản phẩm đã bị xóa", HttpStatus.BAD_REQUEST),
     PRODUCT_CATEGORY_CHANGE_NOT_ALLOWED(2405, "Không thể đổi danh mục khi sản phẩm đã có giá trị thuộc tính", HttpStatus.CONFLICT),
 
     ATTRIBUTE_DEFINITION_NOT_FOUND(2601, "Thuộc tính không thể tìm thấy!", HttpStatus.NOT_FOUND),
