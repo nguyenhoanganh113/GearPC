@@ -18,5 +18,5 @@ public interface ProductAttributeValueRepository
 
     boolean existsByProduct_Category_IdAndAttributeDefinition_Id(UUID categoryId, UUID attributeDefinitionId);
 
-    boolean existByProduct_Id(UUID productId);
+    boolean existsByProduct_Id(UUID productId);
 }

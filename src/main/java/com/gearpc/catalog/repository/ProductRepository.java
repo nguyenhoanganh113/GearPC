@@ -19,4 +19,5 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     @EntityGraph(attributePaths = "category")
     Optional<Product> findByIdAndDeletedAtIsNullAndCategory_DeletedAtIsNull(UUID id);
 
+    Optional<Product> findByIdAndDeletedAtIsNull(UUID productId);
 }

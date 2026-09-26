@@ -13,10 +13,7 @@ import com.gearpc.catalog.domain.entity.Brand;
 import com.gearpc.catalog.domain.entity.Category;
 import com.gearpc.catalog.domain.entity.Product;
 import com.gearpc.catalog.domain.valueobject.enums.ProductStatus;
-import com.gearpc.catalog.repository.BrandRepository;
-import com.gearpc.catalog.repository.CategoryRepository;
-import com.gearpc.catalog.repository.ProductAttributeValueRepository;
-import com.gearpc.catalog.repository.ProductRepository;
+import com.gearpc.catalog.repository.*;
 import com.gearpc.catalog.repository.specification.ProductSpecification;
 import com.gearpc.common.dto.PaginationResponse;
 import com.gearpc.common.exception.AppException;
@@ -47,6 +44,7 @@ public class ProductServiceImpl implements ProductService {
     private final BrandRepository brandRepository;
     private final ProductMapper productMapper;
     private final ProductAttributeValueRepository productAttributeValueRepository;
+    private final CategoryAttributeRepository categoryAttributeRepository;
 
     @Override
     public CreateProductResponse createProduct(CreateProductRequest request) {
@@ -161,7 +159,7 @@ public class ProductServiceImpl implements ProductService {
                 return;
             }
 
-            if (productAttributeValueRepository.existByProduct_Id(product.getId())) {
+            if (productAttributeValueRepository.existsByProduct_Id(product.getId())) {
                 throw new AppException(ErrorCode.PRODUCT_CATEGORY_CHANGE_NOT_ALLOWED);
             }
 
@@ -182,12 +180,44 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public UpdateProductResponse updateProductStatus(UUID id, UpdateProductStatusRequest request) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        Optional.ofNullable(request.productStatus())
-                .map(ProductStatus::fromString)
-                .ifPresent(product::setProductStatus);
+        ProductStatus targetStatus = ProductStatus.fromString(request.productStatus());
+
+        Optional.ofNullable(targetStatus).ifPresent(status -> {
+            if (status == ProductStatus.ACTIVE) {
+                Category category = product.getCategory();
+                if (category.isDeleted()) {
+                    throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+                }
+                if (!category.isActive()) {
+                    throw new AppException(ErrorCode.CATEGORY_INACTIVE);
+                }
+
+                Brand brand = product.getBrand();
+                if (brand.isDeleted()) {
+                    throw new AppException(ErrorCode.BRAND_NOT_FOUND);
+                }
+                if (!brand.isActive()) {
+                    throw new AppException(ErrorCode.BRAND_INACTIVE);
+                }
+
+                boolean missingRequiredAttributes =
+                        categoryAttributeRepository
+                                .existsMissingRequiredAttribute(
+                                        product.getId(),
+                                        category.getId()
+                                );
+
+                if (missingRequiredAttributes) {
+                    throw new AppException(ErrorCode.REQUIRED_PRODUCT_ATTRIBUTE_MISSING);
+                }
+            }
+
+            product.setProductStatus(status);
+        });
+
         return productMapper.toUpdateProductResponse(product);
     }
 
