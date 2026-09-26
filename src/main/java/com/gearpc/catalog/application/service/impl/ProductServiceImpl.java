@@ -54,7 +54,7 @@ public class ProductServiceImpl implements ProductService {
             throw new AppException(ErrorCode.PRODUCT_EXISTS);
         }
 
-        Category category = categoryRepository.findById(request.categoryId())
+        Category category = categoryRepository.findByIdAndActiveTrueAndDeletedAtIsNull(request.categoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         Brand brand = brandRepository.findById(request.brandId())
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
@@ -170,7 +170,11 @@ public class ProductServiceImpl implements ProductService {
             product.setCategory(category);
         });
         Optional.ofNullable(request.brandId()).ifPresent(brandId -> {
-            Brand brand = brandRepository.findById(brandId)
+            if (brandId.equals(product.getBrand().getId())) {
+                return;
+            }
+            Brand brand = brandRepository
+                    .findByIdAndActiveTrueAndDeletedAtIsNull(brandId)
                     .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
             product.setBrand(brand);
         });
