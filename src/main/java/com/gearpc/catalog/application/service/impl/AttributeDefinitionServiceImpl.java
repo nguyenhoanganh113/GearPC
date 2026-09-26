@@ -9,6 +9,8 @@ import com.gearpc.catalog.application.service.AttributeDefinitionService;
 import com.gearpc.catalog.domain.entity.AttributeDefinition;
 import com.gearpc.catalog.domain.valueobject.enums.AttributeDataType;
 import com.gearpc.catalog.repository.AttributeDefinitionRepository;
+import com.gearpc.catalog.repository.CategoryAttributeRepository;
+import com.gearpc.catalog.repository.ProductAttributeValueRepository;
 import com.gearpc.catalog.repository.specification.AttributeDefinitionSpecification;
 import com.gearpc.common.dto.PaginationResponse;
 import com.gearpc.common.exception.AppException;
@@ -30,6 +32,8 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
 
     private final AttributeDefinitionRepository attributeDefinitionRepository;
     private final AttributeDefinitionMapper attributeDefinitionMapper;
+    private final CategoryAttributeRepository categoryAttributeRepository;
+    private final ProductAttributeValueRepository productAttributeValueRepository;
 
     @Override
     @Transactional
@@ -123,7 +127,23 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
     @Override
     @Transactional
     public void deleteAttributeDefinition(UUID id) {
-        findExistingAttribute(id).softDelete();
+        AttributeDefinition attributeDefinition = findExistingAttribute(id);
+
+        boolean assignedToCategory =
+                categoryAttributeRepository
+                        .existsByAttributeDefinition_Id(id);
+
+        boolean usedByProduct =
+                productAttributeValueRepository
+                        .existsByAttributeDefinition_Id(id);
+
+        if (assignedToCategory || usedByProduct) {
+            throw new AppException(
+                    ErrorCode.ATTRIBUTE_DEFINITION_IN_USE
+            );
+        }
+
+        attributeDefinition.softDelete();
     }
 
     private AttributeDefinition findExistingAttribute(UUID id) {

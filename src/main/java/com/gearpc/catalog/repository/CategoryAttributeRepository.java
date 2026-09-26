@@ -31,4 +31,6 @@ public interface CategoryAttributeRepository extends JpaRepository<CategoryAttri
             CategoryAttributeId id
     );
 
+    boolean existsByAttributeDefinition_Id(UUID attributeDefinitionId);
+
 }
