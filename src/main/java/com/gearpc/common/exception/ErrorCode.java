@@ -32,6 +32,7 @@ public enum ErrorCode {
     ATTRIBUTE_DEFINITION_EXISTS(2602, "Mã thuộc tính đã tồn tại", HttpStatus.CONFLICT),
     ATTRIBUTE_DEFINITION_INACTIVE(2603, "Thuộc tính chưa được kích hoạt", HttpStatus.BAD_REQUEST),
     ATTRIBUTE_DEFINITION_IN_USE(2604, "Không thể xóa thuộc tính vì đang được danh mục hoặc sản phẩm sử dụng", HttpStatus.CONFLICT),
+    ATTRIBUTE_DATA_TYPE_CHANGE_NOT_ALLOWED(2605, "Không thể đổi kiểu dữ liệu vì thuộc tính đã có giá trị sản phẩm", HttpStatus.CONFLICT),
 
     CATEGORY_ATTRIBUTE_NOT_FOUND(2801, "Thuộc tính chưa được gán cho danh mục", HttpStatus.NOT_FOUND),
     CATEGORY_ATTRIBUTE_EXISTS(2802, "Thuộc tính đã tồn tại", HttpStatus.CONFLICT),
