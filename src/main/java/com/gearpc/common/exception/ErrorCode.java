@@ -15,14 +15,17 @@ public enum ErrorCode {
 
     BRAND_NOT_FOUND(2001, "Thương hiệu không thể tìm thấy!", HttpStatus.NOT_FOUND),
     BRAND_EXISTS(2002, "Tên thương hiệu đã tồn tại", HttpStatus.CONFLICT),
+    BRAND_INACTIVE(2003, "Thương hiệu chưa được kích hoạt", HttpStatus.CONFLICT),
 
     CATEGORY_NOT_FOUND(2201, "Danh mục không thể tìm thấy!", HttpStatus.NOT_FOUND),
     CATEGORY_EXISTS(2202, "Tên danh mục đã tồn tại", HttpStatus.CONFLICT),
+    CATEGORY_INACTIVE(2203, "Danh mục chưa được kích hoạt", HttpStatus.CONFLICT),
 
     PRODUCT_NOT_FOUND(2401, "Sản phẩm không thể tìm thấy!", HttpStatus.NOT_FOUND),
     PRODUCT_EXISTS(2402, "Sản phẩm đã tồn tại", HttpStatus.CONFLICT),
     INVALID_PRODUCT_STATUS(2403, "Trạng thái sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST),
     PRODUCT_ALREADY_DELETED(2404, "Sản phẩm đã bị xóa", HttpStatus.BAD_REQUEST),
+    PRODUCT_CATEGORY_CHANGE_NOT_ALLOWED(2405, "Không thể đổi danh mục khi sản phẩm đã có giá trị thuộc tính", HttpStatus.CONFLICT),
 
     ATTRIBUTE_DEFINITION_NOT_FOUND(2601, "Thuộc tính không thể tìm thấy!", HttpStatus.NOT_FOUND),
     ATTRIBUTE_DEFINITION_EXISTS(2602, "Mã thuộc tính đã tồn tại", HttpStatus.CONFLICT),
