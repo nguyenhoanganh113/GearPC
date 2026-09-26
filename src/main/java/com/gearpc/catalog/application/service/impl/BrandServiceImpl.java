@@ -7,6 +7,7 @@ import com.gearpc.catalog.application.mapper.BrandMapper;
 import com.gearpc.catalog.application.service.BrandService;
 import com.gearpc.catalog.domain.entity.Brand;
 import com.gearpc.catalog.repository.BrandRepository;
+import com.gearpc.catalog.repository.ProductRepository;
 import com.gearpc.catalog.repository.specification.BrandSpecification;
 import com.gearpc.common.dto.PaginationResponse;
 import com.gearpc.common.exception.AppException;
@@ -30,6 +31,7 @@ public class BrandServiceImpl implements BrandService {
 
     private final BrandRepository brandRepository;
     private final BrandMapper brandMapper;
+    private final ProductRepository productRepository;
 
     @Override
     public CreateBrandResponse createBrand(CreateBrandRequest brandRequest) {
@@ -49,9 +51,13 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public PaginationResponse<DetailBrandResponse> searchBrandsForAdmin(String keyword, Boolean active, Pageable pageable) {
-        Specification<Brand> spec = Specification.where(BrandSpecification.hasKeyword(keyword))
-                .and(BrandSpecification.isActive(active));
-        Page<Brand> brandPage = brandRepository.findAll(spec, pageable);
+        Specification<Brand> brandSpecification = Specification.allOf(
+                BrandSpecification.hasKeyword(keyword),
+                BrandSpecification.isActive(active),
+                BrandSpecification.isNotDeleted()
+        );
+
+        Page<Brand> brandPage = brandRepository.findAll(brandSpecification, pageable);
         // Vấn đề: Convert Page<Brand> sang PaginationResponse<DetailBrandResponse>
         List<DetailBrandResponse> content = brandPage.getContent().stream()
                 .map(brandMapper::toDetailBrandResponse)
@@ -67,7 +73,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public List<BrandOptionResponse> getActiveBrandOptions() {
-        return brandRepository.findAllByActiveTrueOrderByNameAsc()
+        return brandRepository.findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc()
                 .stream()
                 .map(brand -> new BrandOptionResponse(brand.getId(), brand.getName(), brand.getSlug()))
                 .toList();
@@ -75,7 +81,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public DetailBrandResponse getBrand(@NonNull UUID id) {
-        Brand brand = brandRepository.findById(id)
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
         return brandMapper.toDetailBrandResponse(brand);
     }
@@ -83,7 +89,7 @@ public class BrandServiceImpl implements BrandService {
     @Override
     @Transactional
     public UpdateBrandResponse updateBrand(@NonNull UUID id, UpdateBrandRequest brandRequest) {
-        Brand brand = brandRepository.findById(id)
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
         if (brandRequest.name() != null && !brand.getName().equals(brandRequest.name())) {
             if (brandRepository.existsByName(brandRequest.name())) {
@@ -100,7 +106,7 @@ public class BrandServiceImpl implements BrandService {
     @Override
     @Transactional
     public UpdateBrandResponse updateBrandStatus(@NonNull UUID id, Boolean active) {
-        Brand brand = brandRepository.findById(id)
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
         Optional.ofNullable(active).ifPresent(brand::setActive);
         return brandMapper.toUpdateBrandResponse(brand);
@@ -109,8 +115,13 @@ public class BrandServiceImpl implements BrandService {
     @Override
     @Transactional
     public void deleteBrand(@NonNull UUID id) {
-        Brand brand = brandRepository.findById(id)
+        Brand brand = brandRepository
+                .findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
-        brandRepository.delete(brand);
+
+        if (productRepository.existsByBrand_IdAndDeletedAtIsNull(id)) {
+            throw new AppException(ErrorCode.BRAND_IN_USE);
+        }
+        brand.softDelete();
     }
 }

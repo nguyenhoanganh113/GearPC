@@ -16,10 +16,12 @@ public enum ErrorCode {
     BRAND_NOT_FOUND(2001, "Thương hiệu không thể tìm thấy!", HttpStatus.NOT_FOUND),
     BRAND_EXISTS(2002, "Tên thương hiệu đã tồn tại", HttpStatus.CONFLICT),
     BRAND_INACTIVE(2003, "Thương hiệu chưa được kích hoạt", HttpStatus.CONFLICT),
+    BRAND_IN_USE(2004, "Không thể xóa thương hiệu vì đang được sản phẩm sử dụng", HttpStatus.CONFLICT),
 
     CATEGORY_NOT_FOUND(2201, "Danh mục không thể tìm thấy!", HttpStatus.NOT_FOUND),
     CATEGORY_EXISTS(2202, "Tên danh mục đã tồn tại", HttpStatus.CONFLICT),
     CATEGORY_INACTIVE(2203, "Danh mục chưa được kích hoạt", HttpStatus.CONFLICT),
+    CATEGORY_IN_USE(2204, "Không thể xóa danh mục vì đang được sản phẩm sử dụng", HttpStatus.CONFLICT),
 
     PRODUCT_NOT_FOUND(2401, "Sản phẩm không thể tìm thấy!", HttpStatus.NOT_FOUND),
     PRODUCT_EXISTS(2402, "Sản phẩm đã tồn tại", HttpStatus.CONFLICT),
