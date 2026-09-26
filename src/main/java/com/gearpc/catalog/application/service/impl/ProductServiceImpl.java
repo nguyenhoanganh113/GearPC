@@ -56,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
 
         Category category = categoryRepository.findByIdAndActiveTrueAndDeletedAtIsNull(request.categoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        Brand brand = brandRepository.findById(request.brandId())
+        Brand brand = brandRepository.findByIdAndActiveTrueAndDeletedAtIsNull(request.brandId())
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
 
         Product product = productMapper.toProduct(request);
