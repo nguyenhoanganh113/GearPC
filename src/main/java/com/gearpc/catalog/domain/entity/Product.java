@@ -41,7 +41,7 @@ public class Product extends BaseEntity {
     @Column(name = "slug", nullable = false)
     private String slug;
 
-    @Column(name = "sku", nullable = false)
+    @Column(name = "sku", nullable = false, unique = true)
     private String sku;
 
     @Column(name = "price", precision = 15, scale = 2, nullable = false)

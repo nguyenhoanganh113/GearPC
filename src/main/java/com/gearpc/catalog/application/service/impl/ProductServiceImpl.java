@@ -29,7 +29,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,7 +48,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public CreateProductResponse createProduct(CreateProductRequest request) {
 
-        if (productRepository.existsBySku(request.sku()) || productRepository.existsByName(request.name())) {
+        if (productRepository.existsBySku(request.sku()) || productRepository.existsByNameAndDeletedAtIsNull(request.name())) {
             throw new AppException(ErrorCode.PRODUCT_EXISTS);
         }
 
@@ -72,7 +71,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public DetailProductResponse getProduct(UUID id) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         return productMapper.toDetailProductResponse(product);
     }
@@ -132,11 +131,11 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public UpdateProductResponse updateProduct(UUID id, UpdateProductRequest request) {
 
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         if (request.name() != null && !request.name().equals(product.getName())) {
-            if (productRepository.existsByName(request.name())) {
+            if (productRepository.existsByNameAndDeletedAtIsNull(request.name())) {
                 throw new AppException(ErrorCode.PRODUCT_EXISTS);
             }
             product.setName(request.name());
@@ -224,16 +223,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(UUID id) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-
-        if (product.getProductStatus() == ProductStatus.INACTIVE) {
-            throw new AppException(ErrorCode.PRODUCT_ALREADY_DELETED);
-        }
 
         product.setProductStatus(ProductStatus.INACTIVE);
         log.info("Product with ID {} has been marked as INACTIVE.", product.getId());
-        product.setDeletedAt(Instant.now());
+        product.softDelete();
 
     }
 
