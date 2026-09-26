@@ -16,8 +16,10 @@ public interface BrandRepository extends JpaRepository<Brand, UUID>, JpaSpecific
 
     boolean existsByName(String name);
 
-    List<Brand> findAllByActiveTrueOrderByNameAsc();
+    List<Brand> findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc();
 
     Optional<Brand> findByIdAndActiveTrueAndDeletedAtIsNull(UUID id);
+
+    Optional<Brand> findByIdAndDeletedAtIsNull(UUID id);
 
 }

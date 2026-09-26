@@ -29,4 +29,9 @@ public class BrandSpecification {
         };
     }
 
+    public Specification<Brand> isNotDeleted() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.isNull(root.get("deletedAt"));
+    }
+
 }

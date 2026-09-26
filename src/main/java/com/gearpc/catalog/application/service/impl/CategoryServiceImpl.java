@@ -7,6 +7,7 @@ import com.gearpc.catalog.application.mapper.CategoryMapper;
 import com.gearpc.catalog.application.service.CategoryService;
 import com.gearpc.catalog.domain.entity.Category;
 import com.gearpc.catalog.repository.CategoryRepository;
+import com.gearpc.catalog.repository.ProductRepository;
 import com.gearpc.catalog.repository.specification.CategorySpecification;
 import com.gearpc.common.dto.PaginationResponse;
 import com.gearpc.common.exception.AppException;
@@ -30,6 +31,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final ProductRepository productRepository;
 
     @Override
     public CreateCategoryResponse createCategory(CreateCategoryRequest createCategoryRequest) {
@@ -73,7 +75,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public DetailCategoryResponse getCategory(@NonNull UUID id) {
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
         return categoryMapper.toDetailCategoryResponse(category);
@@ -82,7 +84,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public UpdateCategoryResponse updateCategory(@NonNull UUID id, UpdateCategoryRequest updateCategoryRequest) {
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         if (updateCategoryRequest.name() != null && !category.getName().equals(updateCategoryRequest.name())) {
             if (categoryRepository.existsByNameIgnoreCaseAndDeletedAtIsNull(updateCategoryRequest.name())) {
@@ -101,7 +103,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public UpdateCategoryResponse updateCategoryStatus(@NonNull UUID id, Boolean active) {
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
         Optional.ofNullable(active).ifPresent(category::setActive);
@@ -112,12 +114,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(@NonNull UUID id) {
-        Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
+        Category category = categoryRepository
+                .findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        // TODO: Cần kiểm tra xem Category có đang chứa Product nào không trước khi xóa
-        ///  if (productRepository.existsByCategoryId(id)) {
-        //     throw new AppException(ErrorCode.CATEGORY_HAS_PRODUCTS);
-        // }
+
+        if (productRepository.existsByCategory_IdAndDeletedAtIsNull(id)) {
+            throw new AppException(ErrorCode.CATEGORY_IN_USE);
+        }
+
         category.softDelete();
     }
 }

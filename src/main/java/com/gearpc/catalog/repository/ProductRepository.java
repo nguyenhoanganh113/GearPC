@@ -20,4 +20,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     Optional<Product> findByIdAndDeletedAtIsNullAndCategory_DeletedAtIsNull(UUID id);
 
     Optional<Product> findByIdAndDeletedAtIsNull(UUID productId);
+
+    boolean existsByCategory_IdAndDeletedAtIsNull(UUID categoryId);
+
+    boolean existsByBrand_IdAndDeletedAtIsNull(UUID brandId);
 }
