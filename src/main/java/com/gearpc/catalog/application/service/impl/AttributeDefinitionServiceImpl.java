@@ -111,7 +111,15 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
         }
 
         Optional.ofNullable(request.unit()).ifPresent(attributeDefinition::setUnit);
-        Optional.ofNullable(request.dataType()).ifPresent(attributeDefinition::setDataType);
+
+        if (request.dataType() != null && request.dataType() != attributeDefinition.getDataType()) {
+
+            if (productAttributeValueRepository.existsByAttributeDefinition_Id(id)) {
+                throw new AppException(ErrorCode.ATTRIBUTE_DATA_TYPE_CHANGE_NOT_ALLOWED);
+            }
+
+            attributeDefinition.setDataType(request.dataType());
+        }
 
         return attributeDefinitionMapper.toResponse(attributeDefinition);
     }
