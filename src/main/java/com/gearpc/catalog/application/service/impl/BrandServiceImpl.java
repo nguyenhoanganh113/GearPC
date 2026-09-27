@@ -6,6 +6,7 @@ import com.gearpc.catalog.application.dto.request.UpdateBrandRequest;
 import com.gearpc.catalog.application.mapper.BrandMapper;
 import com.gearpc.catalog.application.service.BrandService;
 import com.gearpc.catalog.domain.entity.Brand;
+import com.gearpc.catalog.domain.valueobject.enums.ProductStatus;
 import com.gearpc.catalog.repository.BrandRepository;
 import com.gearpc.catalog.repository.ProductRepository;
 import com.gearpc.catalog.repository.specification.BrandSpecification;
@@ -108,6 +109,17 @@ public class BrandServiceImpl implements BrandService {
     public UpdateBrandResponse updateBrandStatus(@NonNull UUID id, Boolean active) {
         Brand brand = brandRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+
+        if (Boolean.FALSE.equals(active)
+                && brand.isActive()
+                && productRepository
+                .existsByBrand_IdAndProductStatusAndDeletedAtIsNull(
+                        id,
+                        ProductStatus.ACTIVE
+                )) {
+            throw new AppException(ErrorCode.BRAND_HAS_ACTIVE_PRODUCTS);
+        }
+
         Optional.ofNullable(active).ifPresent(brand::setActive);
         return brandMapper.toUpdateBrandResponse(brand);
     }

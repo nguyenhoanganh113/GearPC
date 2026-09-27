@@ -1,6 +1,7 @@
 package com.gearpc.catalog.repository;
 
 import com.gearpc.catalog.domain.entity.Product;
+import com.gearpc.catalog.domain.valueobject.enums.ProductStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -24,4 +25,14 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     boolean existsByCategory_IdAndDeletedAtIsNull(UUID categoryId);
 
     boolean existsByBrand_IdAndDeletedAtIsNull(UUID brandId);
+
+    boolean existsByCategory_IdAndProductStatusAndDeletedAtIsNull(
+            UUID categoryId,
+            ProductStatus productStatus
+    );
+
+    boolean existsByBrand_IdAndProductStatusAndDeletedAtIsNull(
+            UUID brandId,
+            ProductStatus productStatus
+    );
 }
