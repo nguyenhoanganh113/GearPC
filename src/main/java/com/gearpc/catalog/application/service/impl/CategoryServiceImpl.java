@@ -88,7 +88,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         if (updateCategoryRequest.name() != null && !category.getName().equals(updateCategoryRequest.name())) {
-            if (categoryRepository.existsByNameIgnoreCaseAndDeletedAtIsNull(updateCategoryRequest.name())) {
+            if (categoryRepository.existsByNameIgnoreCaseAndDeletedAtIsNullAndIdNot(updateCategoryRequest.name(), id)) {
                 throw new AppException(ErrorCode.CATEGORY_EXISTS);
             }
             category.setName(updateCategoryRequest.name());

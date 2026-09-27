@@ -14,6 +14,8 @@ public interface CategoryRepository extends JpaRepository<Category, UUID>, JpaSp
 
     boolean existsByNameIgnoreCaseAndDeletedAtIsNull(String name);
 
+    boolean existsByNameIgnoreCaseAndDeletedAtIsNullAndIdNot(String name, UUID id);
+
     List<Category> findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc();
 
     Optional<Category> findByIdAndDeletedAtIsNull(UUID id);

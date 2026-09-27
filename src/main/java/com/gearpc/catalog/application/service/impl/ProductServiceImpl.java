@@ -50,7 +50,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public CreateProductResponse createProduct(CreateProductRequest request) {
 
-        if (productRepository.existsBySku(request.sku()) || productRepository.existsByNameAndDeletedAtIsNull(request.name())) {
+        if (productRepository.existsBySkuIgnoreCase(request.sku()) || productRepository.existsByNameIgnoreCaseAndDeletedAtIsNull(request.name())) {
             throw new AppException(ErrorCode.PRODUCT_EXISTS);
         }
 
@@ -137,7 +137,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
         if (request.name() != null && !request.name().equals(product.getName())) {
-            if (productRepository.existsByNameAndDeletedAtIsNull(request.name())) {
+            if (productRepository.existsByNameIgnoreCaseAndDeletedAtIsNullAndIdNot(request.name(), id)) {
                 throw new AppException(ErrorCode.PRODUCT_EXISTS);
             }
             product.setName(request.name());
@@ -145,7 +145,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         if (request.sku() != null && !request.sku().equals(product.getSku())) {
-            if (productRepository.existsBySku(request.sku())) {
+            if (productRepository.existsBySkuIgnoreCaseAndIdNot(request.sku(), id)) {
                 throw new AppException(ErrorCode.PRODUCT_EXISTS);
             }
             product.setSku(request.sku());

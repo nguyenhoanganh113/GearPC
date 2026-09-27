@@ -108,7 +108,7 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
         }
 
         if (request.code() != null && !request.code().equalsIgnoreCase(attributeDefinition.getCode())) {
-            if (attributeDefinitionRepository.existsByCodeIgnoreCase(request.code())) {
+            if (attributeDefinitionRepository.existsByCodeIgnoreCaseAndIdNot(request.code(), id)) {
                 throw new AppException(ErrorCode.ATTRIBUTE_DEFINITION_EXISTS);
             }
             attributeDefinition.setCode(request.code());
