@@ -45,26 +45,7 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
         }
 
         if (required) {
-            List<UUID> activeProductIds = productRepository
-                    .findAllByCategory_IdAndProductStatusAndDeletedAtIsNull(
-                            categoryId,
-                            ProductStatus.ACTIVE
-                    )
-                    .stream()
-                    .map(Product::getId)
-                    .toList();
-
-            if (!activeProductIds.isEmpty()) {
-                long productValueCount = productAttributeValueRepository
-                        .countByProduct_IdInAndAttributeDefinition_Id(
-                                activeProductIds,
-                                attributeDefinitionId
-                        );
-
-                if (productValueCount < activeProductIds.size()) {
-                    throw new AppException(ErrorCode.REQUIRED_ATTRIBUTE_SCHEMA_CHANGE_NOT_ALLOWED);
-                }
-            }
+            validateActiveProductsHaveAttributeValue(categoryId, attributeDefinitionId);
         }
 
         CategoryAttribute categoryAttribute = new CategoryAttribute(category, attributeDefinition, required);
@@ -95,8 +76,38 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
             boolean required
     ) {
         CategoryAttribute categoryAttribute = findActiveCategoryAttribute(categoryId, attributeDefinitionId);
+
+        if (required && !categoryAttribute.isRequired()) {
+            validateActiveProductsHaveAttributeValue(categoryId, attributeDefinitionId);
+        }
+
         categoryAttribute.setRequired(required);
         return toResponse(categoryAttribute);
+    }
+
+    private void validateActiveProductsHaveAttributeValue(UUID categoryId, UUID attributeDefinitionId) {
+        List<UUID> activeProductIds = productRepository
+                .findAllByCategory_IdAndProductStatusAndDeletedAtIsNull(
+                        categoryId,
+                        ProductStatus.ACTIVE
+                )
+                .stream()
+                .map(Product::getId)
+                .toList();
+
+        if (!activeProductIds.isEmpty()) {
+            long productValueCount = productAttributeValueRepository
+                    .countByProduct_IdInAndAttributeDefinition_Id(
+                            activeProductIds,
+                            attributeDefinitionId
+                    );
+
+            if (productValueCount < activeProductIds.size()) {
+                throw new AppException(
+                        ErrorCode.REQUIRED_ATTRIBUTE_SCHEMA_CHANGE_NOT_ALLOWED
+                );
+            }
+        }
     }
 
     @Override
