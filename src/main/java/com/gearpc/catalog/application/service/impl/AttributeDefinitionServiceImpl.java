@@ -118,7 +118,7 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
 
         if (request.dataType() != null && request.dataType() != attributeDefinition.getDataType()) {
 
-            if (productAttributeValueRepository.existsByAttributeDefinition_Id(id)) {
+            if (productAttributeValueRepository.existsByAttributeDefinition_IdAndProduct_DeletedAtIsNull(id)) {
                 throw new AppException(ErrorCode.ATTRIBUTE_DATA_TYPE_CHANGE_NOT_ALLOWED);
             }
 
@@ -181,7 +181,7 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
 
         boolean usedByProduct =
                 productAttributeValueRepository
-                        .existsByAttributeDefinition_Id(id);
+                        .existsByAttributeDefinition_IdAndProduct_DeletedAtIsNull(id);
 
         if (assignedToCategory || usedByProduct) {
             throw new AppException(

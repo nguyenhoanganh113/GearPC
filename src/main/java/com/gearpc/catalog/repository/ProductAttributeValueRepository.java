@@ -17,11 +17,11 @@ public interface ProductAttributeValueRepository
     @EntityGraph(attributePaths = {"product", "attributeDefinition"})
     List<ProductAttributeValue> findAllByProduct_IdOrderByAttributeDefinition_NameAsc(UUID productId);
 
-    boolean existsByProduct_Category_IdAndAttributeDefinition_Id(UUID categoryId, UUID attributeDefinitionId);
+    boolean existsByProduct_Category_IdAndAttributeDefinition_IdAndProduct_DeletedAtIsNull(UUID categoryId, UUID attributeDefinitionId);
 
     boolean existsByProduct_Id(UUID productId);
 
-    boolean existsByAttributeDefinition_Id(UUID attributeDefinitionId);
+    boolean existsByAttributeDefinition_IdAndProduct_DeletedAtIsNull(UUID attributeDefinitionId);
 
     long countByProduct_IdInAndAttributeDefinition_Id(
             Collection<UUID> productIds,

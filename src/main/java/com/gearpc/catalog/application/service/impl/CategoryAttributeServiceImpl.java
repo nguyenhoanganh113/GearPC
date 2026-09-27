@@ -117,7 +117,7 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
                 findActiveCategoryAttribute(categoryId, attributeDefinitionId);
 
         if (productAttributeValueRepository
-                .existsByProduct_Category_IdAndAttributeDefinition_Id(
+                .existsByProduct_Category_IdAndAttributeDefinition_IdAndProduct_DeletedAtIsNull(
                         categoryId,
                         attributeDefinitionId
                 )) {
