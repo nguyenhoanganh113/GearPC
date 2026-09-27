@@ -6,6 +6,7 @@ import com.gearpc.catalog.application.dto.response.*;
 import com.gearpc.catalog.application.mapper.CategoryMapper;
 import com.gearpc.catalog.application.service.CategoryService;
 import com.gearpc.catalog.domain.entity.Category;
+import com.gearpc.catalog.domain.valueobject.enums.ProductStatus;
 import com.gearpc.catalog.repository.CategoryRepository;
 import com.gearpc.catalog.repository.ProductRepository;
 import com.gearpc.catalog.repository.specification.CategorySpecification;
@@ -105,6 +106,16 @@ public class CategoryServiceImpl implements CategoryService {
     public UpdateCategoryResponse updateCategoryStatus(@NonNull UUID id, Boolean active) {
         Category category = categoryRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        if (Boolean.FALSE.equals(active)
+                && category.isActive()
+                && productRepository
+                .existsByCategory_IdAndProductStatusAndDeletedAtIsNull(
+                        id,
+                        ProductStatus.ACTIVE
+                )) {
+            throw new AppException(ErrorCode.CATEGORY_HAS_ACTIVE_PRODUCTS);
+        }
 
         Optional.ofNullable(active).ifPresent(category::setActive);
 
