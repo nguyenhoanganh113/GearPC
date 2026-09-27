@@ -7,10 +7,13 @@ import com.gearpc.catalog.application.dto.response.AttributeDefinitionResponse;
 import com.gearpc.catalog.application.mapper.AttributeDefinitionMapper;
 import com.gearpc.catalog.application.service.AttributeDefinitionService;
 import com.gearpc.catalog.domain.entity.AttributeDefinition;
+import com.gearpc.catalog.domain.entity.Product;
 import com.gearpc.catalog.domain.valueobject.enums.AttributeDataType;
+import com.gearpc.catalog.domain.valueobject.enums.ProductStatus;
 import com.gearpc.catalog.repository.AttributeDefinitionRepository;
 import com.gearpc.catalog.repository.CategoryAttributeRepository;
 import com.gearpc.catalog.repository.ProductAttributeValueRepository;
+import com.gearpc.catalog.repository.ProductRepository;
 import com.gearpc.catalog.repository.specification.AttributeDefinitionSpecification;
 import com.gearpc.common.dto.PaginationResponse;
 import com.gearpc.common.exception.AppException;
@@ -34,6 +37,7 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
     private final AttributeDefinitionMapper attributeDefinitionMapper;
     private final CategoryAttributeRepository categoryAttributeRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
+    private final ProductRepository productRepository;
 
     @Override
     @Transactional
@@ -128,7 +132,41 @@ public class AttributeDefinitionServiceImpl implements AttributeDefinitionServic
     @Transactional
     public AttributeDefinitionResponse updateAttributeDefinitionStatus(UUID id, Boolean active) {
         AttributeDefinition attributeDefinition = findExistingAttribute(id);
+
+        if (Boolean.TRUE.equals(active) && !attributeDefinition.isActive()) {
+            List<UUID> categoryIds = categoryAttributeRepository
+                    .findAllByAttributeDefinition_IdAndRequiredTrueAndCategory_ActiveTrueAndCategory_DeletedAtIsNull(id)
+                    .stream()
+                    .map(categoryAttribute -> categoryAttribute.getCategory().getId())
+                    .distinct()
+                    .toList();
+
+            if (!categoryIds.isEmpty()) {
+                List<UUID> activeProductIds = productRepository
+                        .findAllByCategory_IdInAndProductStatusAndDeletedAtIsNull(
+                                categoryIds,
+                                ProductStatus.ACTIVE
+                        )
+                        .stream()
+                        .map(Product::getId)
+                        .toList();
+
+                if (!activeProductIds.isEmpty()) {
+                    long productValueCount = productAttributeValueRepository
+                            .countByProduct_IdInAndAttributeDefinition_Id(
+                                    activeProductIds,
+                                    id
+                            );
+
+                    if (productValueCount < activeProductIds.size()) {
+                        throw new AppException(ErrorCode.ATTRIBUTE_REACTIVATION_NOT_ALLOWED);
+                    }
+                }
+            }
+        }
+
         Optional.ofNullable(active).ifPresent(attributeDefinition::setActive);
+
         return attributeDefinitionMapper.toResponse(attributeDefinition);
     }
 
