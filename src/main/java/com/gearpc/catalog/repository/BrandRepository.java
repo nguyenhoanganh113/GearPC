@@ -14,7 +14,11 @@ public interface BrandRepository extends JpaRepository<Brand, UUID>, JpaSpecific
 
     boolean existsBySlug(String slug);
 
-    boolean existsByName(String name);
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
+
+    boolean existsBySlugAndIdNot(String slug, UUID id);
 
     List<Brand> findAllByActiveTrueAndDeletedAtIsNullOrderByNameAsc();
 

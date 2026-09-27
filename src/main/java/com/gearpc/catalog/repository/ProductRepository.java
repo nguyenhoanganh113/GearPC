@@ -15,9 +15,19 @@ import java.util.UUID;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpecificationExecutor<Product> {
 
-    boolean existsByNameAndDeletedAtIsNull(String name);
+    boolean existsByNameIgnoreCaseAndDeletedAtIsNull(String name);
 
-    boolean existsBySku(String sku);
+    boolean existsBySkuIgnoreCase(String sku);
+
+    boolean existsByNameIgnoreCaseAndDeletedAtIsNullAndIdNot(
+            String name,
+            UUID id
+    );
+
+    boolean existsBySkuIgnoreCaseAndIdNot(
+            String sku,
+            UUID id
+    );
 
     @EntityGraph(attributePaths = "category")
     Optional<Product> findByIdAndDeletedAtIsNullAndCategory_DeletedAtIsNull(UUID id);

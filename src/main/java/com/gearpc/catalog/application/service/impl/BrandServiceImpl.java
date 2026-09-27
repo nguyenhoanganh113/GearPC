@@ -37,6 +37,10 @@ public class BrandServiceImpl implements BrandService {
     @Override
     public CreateBrandResponse createBrand(CreateBrandRequest brandRequest) {
 
+        if (brandRepository.existsByNameIgnoreCase(brandRequest.name())) {
+            throw new AppException(ErrorCode.BRAND_EXISTS);
+        }
+
         Brand brand = brandMapper.toBrand(brandRequest);
 
         String slug = SlugUtils.generateSlug(brandRequest.name());
@@ -92,14 +96,25 @@ public class BrandServiceImpl implements BrandService {
     public UpdateBrandResponse updateBrand(@NonNull UUID id, UpdateBrandRequest brandRequest) {
         Brand brand = brandRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
-        if (brandRequest.name() != null && !brand.getName().equals(brandRequest.name())) {
-            if (brandRepository.existsByName(brandRequest.name())) {
+
+        if (brandRequest.name() != null && !brandRequest.name().equalsIgnoreCase(brand.getName())) {
+            if (brandRepository.existsByNameIgnoreCaseAndIdNot(
+                    brandRequest.name(),
+                    id
+            )) {
                 throw new AppException(ErrorCode.BRAND_EXISTS);
             }
-            // Cập nhật name và đồng thời tự động sinh lại slug mới tương ứng
+
+            String newSlug = SlugUtils.generateSlug(brandRequest.name());
+
+            if (brandRepository.existsBySlugAndIdNot(newSlug, id)) {
+                throw new AppException(ErrorCode.BRAND_EXISTS);
+            }
+
             brand.setName(brandRequest.name());
-            brand.setSlug(SlugUtils.generateSlug(brandRequest.name()));
+            brand.setSlug(newSlug);
         }
+
         Optional.ofNullable(brandRequest.logoUrl()).ifPresent(brand::setLogoUrl);
         return brandMapper.toUpdateBrandResponse(brand);
     }
