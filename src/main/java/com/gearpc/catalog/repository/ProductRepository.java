@@ -42,4 +42,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
             Collection<UUID> categoryIds,
             ProductStatus productStatus
     );
+
+    List<Product> findAllByCategory_IdAndProductStatusAndDeletedAtIsNull(
+            UUID categoryId,
+            ProductStatus productStatus
+    );
 }
