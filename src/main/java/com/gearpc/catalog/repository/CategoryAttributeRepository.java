@@ -33,4 +33,9 @@ public interface CategoryAttributeRepository extends JpaRepository<CategoryAttri
 
     boolean existsByAttributeDefinition_Id(UUID attributeDefinitionId);
 
+    @EntityGraph(attributePaths = "category")
+    List<CategoryAttribute> findAllByAttributeDefinition_IdAndRequiredTrueAndCategory_ActiveTrueAndCategory_DeletedAtIsNull(
+            UUID attributeDefinitionId
+    );
+
 }
