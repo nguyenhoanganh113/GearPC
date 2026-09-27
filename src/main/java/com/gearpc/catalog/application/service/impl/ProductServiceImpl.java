@@ -160,7 +160,7 @@ public class ProductServiceImpl implements ProductService {
                 return;
             }
 
-            if (product.getProductStatus() == ProductStatus.INACTIVE) {
+            if (product.getProductStatus() != ProductStatus.INACTIVE) {
                 throw new AppException(ErrorCode.PRODUCT_CATEGORY_CHANGE_REQUIRES_INACTIVE);
             }
 
