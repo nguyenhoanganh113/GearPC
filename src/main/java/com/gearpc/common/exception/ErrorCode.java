@@ -45,6 +45,11 @@ public enum     ErrorCode {
     CATEGORY_ATTRIBUTE_NOT_FOUND(2801, "Thuộc tính chưa được gán cho danh mục", HttpStatus.NOT_FOUND),
     CATEGORY_ATTRIBUTE_EXISTS(2802, "Thuộc tính đã tồn tại", HttpStatus.CONFLICT),
     CATEGORY_ATTRIBUTE_IN_USE(2803, "Không thể bỏ thuộc tính vì đang được sản phẩm sử dụng", HttpStatus.CONFLICT),
+    REQUIRED_ATTRIBUTE_SCHEMA_CHANGE_NOT_ALLOWED(
+            2804,
+            "Không thể đặt thuộc tính là bắt buộc vì còn sản phẩm đang hoạt động thiếu giá trị",
+            HttpStatus.CONFLICT
+    ),
 
     PRODUCT_ATTRIBUTE_NOT_ALLOWED(3001, "Thuộc tính không áp dụng cho danh mục của sản phẩm", HttpStatus.BAD_REQUEST),
     REQUIRED_PRODUCT_ATTRIBUTE_MISSING(3002, "Thiếu thuộc tính bắt buộc của sản phẩm", HttpStatus.BAD_REQUEST),

@@ -5,11 +5,10 @@ import com.gearpc.catalog.application.service.CategoryAttributeService;
 import com.gearpc.catalog.domain.entity.AttributeDefinition;
 import com.gearpc.catalog.domain.entity.Category;
 import com.gearpc.catalog.domain.entity.CategoryAttribute;
+import com.gearpc.catalog.domain.entity.Product;
 import com.gearpc.catalog.domain.valueobject.CategoryAttributeId;
-import com.gearpc.catalog.repository.AttributeDefinitionRepository;
-import com.gearpc.catalog.repository.CategoryAttributeRepository;
-import com.gearpc.catalog.repository.CategoryRepository;
-import com.gearpc.catalog.repository.ProductAttributeValueRepository;
+import com.gearpc.catalog.domain.valueobject.enums.ProductStatus;
+import com.gearpc.catalog.repository.*;
 import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +26,7 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
     private final AttributeDefinitionRepository attributeDefinitionRepository;
     private final CategoryAttributeRepository categoryAttributeRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
+    private final ProductRepository productRepository;
 
     @Transactional
     @Override
@@ -42,6 +42,29 @@ public class CategoryAttributeServiceImpl implements CategoryAttributeService {
 
         if (categoryAttributeRepository.existsById(id)) {
             throw new AppException(ErrorCode.CATEGORY_ATTRIBUTE_EXISTS);
+        }
+
+        if (required) {
+            List<UUID> activeProductIds = productRepository
+                    .findAllByCategory_IdAndProductStatusAndDeletedAtIsNull(
+                            categoryId,
+                            ProductStatus.ACTIVE
+                    )
+                    .stream()
+                    .map(Product::getId)
+                    .toList();
+
+            if (!activeProductIds.isEmpty()) {
+                long productValueCount = productAttributeValueRepository
+                        .countByProduct_IdInAndAttributeDefinition_Id(
+                                activeProductIds,
+                                attributeDefinitionId
+                        );
+
+                if (productValueCount < activeProductIds.size()) {
+                    throw new AppException(ErrorCode.REQUIRED_ATTRIBUTE_SCHEMA_CHANGE_NOT_ALLOWED);
+                }
+            }
         }
 
         CategoryAttribute categoryAttribute = new CategoryAttribute(category, attributeDefinition, required);
