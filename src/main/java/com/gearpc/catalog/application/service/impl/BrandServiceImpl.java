@@ -156,6 +156,8 @@ public class BrandServiceImpl implements BrandService {
         if (productRepository.existsByBrand_IdAndDeletedAtIsNull(id)) {
             throw new AppException(ErrorCode.BRAND_IN_USE);
         }
+
+        brand.setActive(false);
         brand.softDelete();
     }
 
