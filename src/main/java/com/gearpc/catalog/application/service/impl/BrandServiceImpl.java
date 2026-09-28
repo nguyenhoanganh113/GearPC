@@ -55,18 +55,25 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public PaginationResponse<DetailBrandResponse> searchBrandsForAdmin(String keyword, Boolean active, Pageable pageable) {
+    public PaginationResponse<DetailBrandResponse> searchBrandsForAdmin(
+            String keyword,
+            Boolean active,
+            Boolean deleted,
+            Pageable pageable
+    ) {
         Specification<Brand> brandSpecification = Specification.allOf(
                 BrandSpecification.hasKeyword(keyword),
                 BrandSpecification.isActive(active),
-                BrandSpecification.isNotDeleted()
+                BrandSpecification.isDeleted(deleted)
         );
 
         Page<Brand> brandPage = brandRepository.findAll(brandSpecification, pageable);
+
         // Vấn đề: Convert Page<Brand> sang PaginationResponse<DetailBrandResponse>
         List<DetailBrandResponse> content = brandPage.getContent().stream()
                 .map(brandMapper::toDetailBrandResponse)
                 .toList();
+
         return PaginationResponse.<DetailBrandResponse>builder()
                 .pageNo(brandPage.getNumber() + 1) // Page number is 0-based in Spring Data, so we add 1 for 1-based page number
                 .pageSize(brandPage.getSize())
@@ -150,5 +157,17 @@ public class BrandServiceImpl implements BrandService {
             throw new AppException(ErrorCode.BRAND_IN_USE);
         }
         brand.softDelete();
+    }
+
+    @Override
+    @Transactional
+    public UpdateBrandResponse restoreBrand(@NonNull UUID id) {
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNotNull(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+
+        brand.restore();
+        brand.setActive(false);
+
+        return brandMapper.toUpdateBrandResponse(brand);
     }
 }

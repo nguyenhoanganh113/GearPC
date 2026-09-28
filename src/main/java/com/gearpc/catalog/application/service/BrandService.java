@@ -9,7 +9,6 @@ import com.gearpc.catalog.application.dto.response.UpdateBrandResponse;
 import com.gearpc.common.dto.PaginationResponse;
 import lombok.NonNull;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,8 +18,9 @@ public interface BrandService {
     CreateBrandResponse createBrand(CreateBrandRequest brandRequest);
 
     PaginationResponse<DetailBrandResponse> searchBrandsForAdmin(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Boolean active,
+            String keyword,
+            Boolean active,
+            Boolean deleted,
             Pageable pageable
     );
 
@@ -33,5 +33,7 @@ public interface BrandService {
     UpdateBrandResponse updateBrandStatus(@NonNull UUID id, Boolean active);
 
     void deleteBrand(@NonNull UUID id);
+
+    UpdateBrandResponse restoreBrand(@NonNull UUID id);
 
 }
