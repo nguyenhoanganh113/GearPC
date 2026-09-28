@@ -29,9 +29,11 @@ public class BrandSpecification {
         };
     }
 
-    public Specification<Brand> isNotDeleted() {
+    public static Specification<Brand> isDeleted(Boolean deleted) {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.isNull(root.get("deletedAt"));
+                Boolean.TRUE.equals(deleted)
+                        ? criteriaBuilder.isNotNull(root.get("deletedAt"))
+                        : criteriaBuilder.isNull(root.get("deletedAt"));
     }
 
 }

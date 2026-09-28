@@ -26,4 +26,6 @@ public interface BrandRepository extends JpaRepository<Brand, UUID>, JpaSpecific
 
     Optional<Brand> findByIdAndDeletedAtIsNull(UUID id);
 
+    Optional<Brand> findByIdAndDeletedAtIsNotNull(UUID id);
+
 }

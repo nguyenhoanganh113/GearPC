@@ -12,6 +12,7 @@ import com.gearpc.common.dto.PaginationResponse;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -39,6 +40,8 @@ public class BrandController {
     public ApiResponse<PaginationResponse<DetailBrandResponse>> searchBrandsForAdmin(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false, defaultValue = "false") Boolean deleted,
+            @ParameterObject
             @PageableDefault(
                     size = 15,
                     sort = {"createdAt", "id"}, // tier-breaker
@@ -46,7 +49,8 @@ public class BrandController {
             )
             Pageable pageable
     ) {
-        PaginationResponse<DetailBrandResponse> brands = brandService.searchBrandsForAdmin(keyword, active, pageable);
+        PaginationResponse<DetailBrandResponse> brands =
+                brandService.searchBrandsForAdmin(keyword, active, deleted, pageable);
         return ApiResponse.success(brands);
     }
 
@@ -85,5 +89,12 @@ public class BrandController {
     public ApiResponse<Void> deleteBrand(@NonNull @PathVariable UUID id) {
         brandService.deleteBrand(id);
         return ApiResponse.success();
+    }
+
+    @PatchMapping("/{id}/restore")
+    public ApiResponse<UpdateBrandResponse> restoreBrand(
+            @NonNull @PathVariable UUID id
+    ) {
+        return ApiResponse.success(brandService.restoreBrand(id));
     }
 }
