@@ -17,6 +17,7 @@ public record DetailBrandResponse(
         Instant createdAt,
         String createdBy,
         Instant lastModifiedAt,
-        String lastModifiedBy
+        String lastModifiedBy,
+        Instant deletedAt
 ) {
 }
