@@ -17,9 +17,10 @@ spring:
 
   # Cấu hình Flyway
   flyway:
-    enabled: true
+    enabled: true  #Cho phép tự động chạy Flyway khi ứng dụng khởi động
     locations: classpath:db/migration
-    baseline-on-migrate: true
+    baseline-on-migrate: true #true: sẽ tạo bảng flyway_schema_history nếu chưa tồn tại, \
+    ##false: báo lỗi nếu db đã có dữ liệu nhưng chưa có bảng flyway_schema_history
     baseline-version: 1
 
   # Cấu hình JPA / Hibernate
