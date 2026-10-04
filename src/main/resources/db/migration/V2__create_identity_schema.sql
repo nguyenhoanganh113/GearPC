@@ -4,6 +4,7 @@ CREATE TABLE public.users (
     password_hash varchar(255) NOT NULL,
     first_name varchar(255) NOT NULL,
     last_name varchar(255) NOT NULL,
+    gender varchar(20),
     phone varchar(255),
     avatar_key varchar(255),
     user_status varchar(255) NOT NULL DEFAULT 'PENDING_VERIFICATION',
@@ -15,6 +16,9 @@ CREATE TABLE public.users (
     deleted_at timestamp(6) with time zone,
     CONSTRAINT uq_users_email UNIQUE (email),
     CONSTRAINT uq_users_phone UNIQUE (phone),
+    CONSTRAINT ck_users_gender CHECK (
+        gender IN ('MALE', 'FEMALE', 'OTHER')
+    ),
     CONSTRAINT ck_users_status CHECK (
         user_status IN (
                         'PENDING_VERIFICATION',

@@ -1,6 +1,7 @@
 package com.gearpc.identity.domain.entity;
 
 import com.gearpc.common.entity.BaseEntity;
+import com.gearpc.identity.domain.valueobject.enums.Gender;
 import com.gearpc.identity.domain.valueobject.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,6 +29,10 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private String lastName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private Gender gender;
 
     @Column(unique = true)
     private String phone;
