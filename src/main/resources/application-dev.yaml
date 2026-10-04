@@ -1,0 +1,27 @@
+spring:
+
+  # Cấu hình Docker Compose Integration
+  # Spring Boot sẽ tự động bật/tắt các container trong compose.yaml khi chạy/dừng app
+  docker:
+    compose:
+      enabled: true
+      lifecycle-management: start-and-stop
+
+  # Cấu hình PostgreSQL (Spring Boot Docker Compose sẽ tự nhận diện kết nối)
+  datasource:
+    url: ${DEV_DB_URL:jdbc:postgresql://localhost:5435/gearpc_db}
+    username: ${DEV_DB_USERNAME:postgres}
+    password: ${DEV_DB_PASSWORD:123456}
+
+  data:
+    redis:
+      host: ${DEV_REDIS_HOST:localhost}
+      port: ${DEV_REDIS_PORT:6378}
+      password: ${DEV_REDIS_PASSWORD:}
+
+  # Cấu hình JPA / Hibernate
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

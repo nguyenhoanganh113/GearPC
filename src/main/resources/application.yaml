@@ -2,32 +2,25 @@ spring:
   application:
     name: GearPC
 
-  # Cấu hình Docker Compose Integration
-  # Spring Boot sẽ tự động bật/tắt các container trong compose.yaml khi chạy/dừng app
+  profiles:
+    default: dev
+
   docker:
     compose:
-      lifecycle-management: start-and-stop
-
-  # Cấu hình PostgreSQL (Spring Boot Docker Compose sẽ tự nhận diện kết nối)
-  datasource:
-    url: jdbc:postgresql://localhost:5435/gearpc_db
-    username: postgres
-    password: 123456
-    driver-class-name: org.postgresql.Driver
+      enabled: false
 
   # Cấu hình Flyway
   flyway:
     enabled: true  #Cho phép tự động chạy Flyway khi ứng dụng khởi động
     locations: classpath:db/migration
-    baseline-on-migrate: true #true: sẽ tạo bảng flyway_schema_history nếu chưa tồn tại, \
-    ##false: báo lỗi nếu db đã có dữ liệu nhưng chưa có bảng flyway_schema_history
+    baseline-on-migrate: false #true: sẽ tạo bảng flyway_schema_history nếu chưa tồn tại, \
+    #false: báo lỗi nếu db đã có dữ liệu nhưng chưa có bảng flyway_schema_history
     baseline-version: 1
 
   # Cấu hình JPA / Hibernate
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
     properties:
       hibernate:
         format_sql: true
@@ -36,12 +29,7 @@ spring:
   data:
     web:
       pageable:
-        one-indexed-parameters: true #Whether to expose and assume 1-based page number indexes.
-        #Defaults to "false", meaning a page number of 0 in the request equals the first page.
-    # Cấu hình Redis
-    redis:
-      host: localhost
-      port: 6378
+        one-indexed-parameters: true
 
 server:
-  port: 8086
+  port: ${SERVER_PORT:8086}
