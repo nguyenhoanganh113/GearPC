@@ -1,9 +1,8 @@
 package com.gearpc.identity.domain.entity;
 
 import com.gearpc.common.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.gearpc.identity.domain.valueobject.enums.RoleType;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -15,8 +14,9 @@ import lombok.*;
 @Builder
 public class Role extends BaseEntity {
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "name", nullable = false, unique = true)
+    private RoleType name;
 
     private String description;
 

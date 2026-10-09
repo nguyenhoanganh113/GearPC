@@ -56,6 +56,8 @@ public enum     ErrorCode {
     INVALID_PRODUCT_ATTRIBUTE_VALUE(3003, "Giá trị thuộc tính sản phẩm không đúng kiểu dữ liệu", HttpStatus.BAD_REQUEST),
     DUPLICATE_PRODUCT_ATTRIBUTE(3004, "Thuộc tính sản phẩm bị trùng lặp", HttpStatus.BAD_REQUEST),
     PRODUCT_ATTRIBUTE_VALIDATION_FAILED(3005, "Một hoặc nhiều thuộc tính sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST),
+
+    USER_EXISTS(4001, "Người dùng đã tồn tại", HttpStatus.CONFLICT),
     ;
 
     private final int code;

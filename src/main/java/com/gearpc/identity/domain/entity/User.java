@@ -54,4 +54,11 @@ public class User extends BaseEntity {
     )
     @Builder.Default
     private Set<UserHasRole> userHasRoles = new HashSet<>();
+
+    // Method helper assign role cho user
+    public void assignRole(Role role) {
+        UserHasRole userHasRole = new UserHasRole(this, role);
+        userHasRoles.add(userHasRole);
+    }
+
 }
