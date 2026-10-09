@@ -1,5 +1,6 @@
 package com.gearpc.identity.application.dto.request;
 
+import com.gearpc.common.annotation.EnumPattern;
 import com.gearpc.identity.domain.valueobject.enums.Gender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -27,7 +28,11 @@ public record RegisterUserRequest(
         @Size(max = 255)
         String phone,
 
-        Gender gender
+        @EnumPattern(
+                enumClass = Gender.class,
+                message = "Giới tính không hợp lệ"
+        )
+        String gender
 
 ) {
 }
