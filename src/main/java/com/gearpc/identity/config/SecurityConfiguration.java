@@ -1,7 +1,12 @@
 package com.gearpc.identity.config;
 
+import com.gearpc.identity.application.service.CustomUserDetailService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -9,11 +14,21 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration {
+
+    private final CustomUserDetailService customUserDetailService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -33,6 +48,25 @@ public class SecurityConfiguration {
                         .anyRequest().authenticated()
                 );
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(provider);
+    }
+
+    @Bean
+    public JwtEncoder jwtEncoder(JwtProperties jwtProperties) {
+        SecretKey key = new SecretKeySpec(
+                jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8),
+                "HmacSHA512"
+        );
+
+        return NimbusJwtEncoder.withSecretKey(key)
+                .algorithm(MacAlgorithm.HS512)
+                .build();
     }
 
 }

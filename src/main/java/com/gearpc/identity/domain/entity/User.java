@@ -60,5 +60,4 @@ public class User extends BaseEntity {
         UserHasRole userHasRole = new UserHasRole(this, role);
         userHasRoles.add(userHasRole);
     }
-
 }

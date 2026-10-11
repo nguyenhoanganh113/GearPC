@@ -25,3 +25,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  secret-key: p+L1K022W00ZWHbyI63BqADgbI4LbHqiBdPNdX3w+JngmSuhxyNqHliFIG/gP4TQ9Q/yyoy9enSMfiVQ/Qq9Ew==
+  issuer: https://gearpc.com
