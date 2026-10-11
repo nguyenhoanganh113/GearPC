@@ -12,6 +12,7 @@ public enum ErrorCode {
     MALFORMED_JSON(1002, "JSON không hợp lệ hoặc không thể đọc được", HttpStatus.BAD_REQUEST),
     DATA_INTEGRITY_VIOLATION(1003, "Dữ liệu không hợp lệ hoặc vi phạm ràng buộc hệ thống", HttpStatus.BAD_REQUEST),
     INVALID_PRICE_RANGE(1004, "Khoảng giá không hợp lệ", HttpStatus.BAD_REQUEST),
+    TOKEN_GENERATION_FAILED(500, "Failed to generate JWT token", HttpStatus.INTERNAL_SERVER_ERROR),
 
     BRAND_NOT_FOUND(2001, "Thương hiệu không thể tìm thấy!", HttpStatus.NOT_FOUND),
     BRAND_EXISTS(2002, "Tên thương hiệu đã tồn tại", HttpStatus.CONFLICT),
@@ -64,6 +65,7 @@ public enum ErrorCode {
             "Email hoặc mật khẩu không đúng",
             HttpStatus.UNAUTHORIZED
     ),
+    EMAIL_NOT_VERIFIED(4004, "Tài khoản chưa xác minh email", HttpStatus.FORBIDDEN),
     ;
 
     private final int code;
