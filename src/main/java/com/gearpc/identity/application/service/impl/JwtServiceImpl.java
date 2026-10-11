@@ -1,79 +1,65 @@
 package com.gearpc.identity.application.service.impl;
 
-import com.gearpc.common.exception.AppException;
-import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.identity.application.service.JwtService;
 import com.gearpc.identity.config.JwtProperties;
 import com.gearpc.identity.domain.valueobject.enums.TokenType;
 import com.gearpc.identity.jwt.JwtClaims;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jwt.JWTClaimsSet;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
 
     private final JwtProperties jwtProperties;
-
-    public JwtServiceImpl(JwtProperties jwtProperties) {
-        this.jwtProperties = jwtProperties;
-    }
+    private final JwtEncoder jwtEncoder;
 
     @Override
     public String generateAccessToken(UUID userId, Set<String> roles) {
-        Date issueTime = new Date();
-        Date expiredTime = new Date(Instant.now().plus(2, ChronoUnit.HOURS).toEpochMilli());
-        String jwtId = UUID.randomUUID().toString();
+        Instant now = Instant.now();
 
-        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
                 .subject(userId.toString())
                 .issuer(jwtProperties.getIssuer())
                 .claim(JwtClaims.ROLES, roles)
-                .issueTime(issueTime)
-                .expirationTime(expiredTime)
-                .jwtID(jwtId)
+                .issuedAt(now)
+                .expiresAt(now.plus(2, ChronoUnit.HOURS))
+                .id(UUID.randomUUID().toString())
                 .claim(JwtClaims.TOKEN_TYPE, TokenType.ACCESS_TOKEN.name())
                 .build();
 
-        return sign(claimsSet);
+        return encode(claimsSet);
     }
 
     @Override
     public String generateRefreshToken(UUID userId) {
-        Date issueTime = new Date();
-        Date expiredTime = new Date(Instant.now().plus(14, ChronoUnit.DAYS).toEpochMilli());
-        String jwtId = UUID.randomUUID().toString();
+        Instant now = Instant.now();
 
-        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+        JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(userId.toString())
                 .issuer(jwtProperties.getIssuer())
-                .issueTime(issueTime)
-                .expirationTime(expiredTime)
-                .jwtID(jwtId)
+                .issuedAt(now)
+                .expiresAt(now.plus(14, ChronoUnit.DAYS))
+                .id(UUID.randomUUID().toString())
                 .claim(JwtClaims.TOKEN_TYPE, TokenType.REFRESH_TOKEN.name())
                 .build();
 
-        return sign(claimsSet);
+        return encode(claims);
     }
 
-    private String sign(JWTClaimsSet claimsSet) {
-        JWSObject jwsObject = new JWSObject(
-                new JWSHeader(JWSAlgorithm.HS512),
-                new Payload(claimsSet.toJSONObject())
-        );
-
-        try {
-            jwsObject.sign(new MACSigner(jwtProperties.getSecretKey()));
-            return jwsObject.serialize();
-        } catch (JOSEException e) {
-            throw new AppException(ErrorCode.TOKEN_GENERATION_FAILED);
-        }
+    private String encode(JwtClaimsSet claims) {
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS512).build();
+        return jwtEncoder.encode(JwtEncoderParameters.from(header, claims))
+                .getTokenValue();
     }
 }
