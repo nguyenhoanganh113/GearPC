@@ -5,6 +5,7 @@ import com.gearpc.common.dto.FieldErrorResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,6 +49,13 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ApiResponse<Void>> buildErrorResponse(ErrorCode errorCode) {
         return buildErrorResponse(errorCode, null);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(
+            BadCredentialsException exception
+    ) {
+        return buildErrorResponse(ErrorCode.INVALID_CREDENTIALS);
     }
 
     private <T> ResponseEntity<ApiResponse<T>> buildErrorResponse(ErrorCode errorCode, T data) {

@@ -58,6 +58,12 @@ public enum     ErrorCode {
     PRODUCT_ATTRIBUTE_VALIDATION_FAILED(3005, "Một hoặc nhiều thuộc tính sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST),
 
     USER_EXISTS(4001, "Người dùng đã tồn tại", HttpStatus.CONFLICT),
+    USER_NOT_FOUND(4002, "Người dùng không thể tìm thấy!", HttpStatus.NOT_FOUND),
+    INVALID_CREDENTIALS(
+            4003,
+            "Email hoặc mật khẩu không đúng",
+            HttpStatus.UNAUTHORIZED
+    ),
     ;
 
     private final int code;
