@@ -4,7 +4,6 @@ import com.gearpc.common.entity.BaseEntity;
 import com.gearpc.identity.domain.valueobject.enums.Gender;
 import com.gearpc.identity.domain.valueobject.enums.UserStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
@@ -70,7 +69,7 @@ public class User extends BaseEntity implements UserDetails {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
         List<Role> roleList = this.userHasRoles.stream().map(UserHasRole::getRole).toList();
         return roleList.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))

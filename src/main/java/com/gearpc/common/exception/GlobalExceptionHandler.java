@@ -22,7 +22,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(
-            DataIntegrityViolationException exception
     ) {
         return buildErrorResponse(ErrorCode.DATA_INTEGRITY_VIOLATION);
     }
@@ -42,7 +41,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(
-            HttpMessageNotReadableException exception
     ) {
         return buildErrorResponse(ErrorCode.MALFORMED_JSON);
     }
@@ -53,7 +51,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(
-            BadCredentialsException exception
     ) {
         return buildErrorResponse(ErrorCode.INVALID_CREDENTIALS);
     }

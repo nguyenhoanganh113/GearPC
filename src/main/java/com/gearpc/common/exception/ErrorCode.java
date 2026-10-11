@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @AllArgsConstructor
 @Getter
-public enum     ErrorCode {
+public enum ErrorCode {
 
     VALIDATION_FAILED(1001, "Dữ liệu đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
     MALFORMED_JSON(1002, "JSON không hợp lệ hoặc không thể đọc được", HttpStatus.BAD_REQUEST),
