@@ -9,6 +9,8 @@ import com.gearpc.identity.application.service.JwtService;
 import com.gearpc.identity.domain.entity.User;
 import com.gearpc.identity.domain.valueobject.enums.RoleType;
 import com.gearpc.identity.repository.UserRepository;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +20,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -68,4 +71,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .roles(roles)
                 .build();
     }
+
+    @Override
+    public LoginResponse refreshToken(String refreshToken) throws ParseException, JOSEException {
+
+        SignedJWT signedJWT = verifyToken(refreshToken);
+
+        UUID userId = UUID.fromString(signedJWT.getJWTClaimsSet().getSubject());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Set<String> roles = user.getUserHasRoles()
+                .stream()
+                .map(userRole -> userRole.getRole().getName().name())
+                .collect(Collectors.toSet());
+        String newAccessToken = jwtService.generateAccessToken(userId, roles);
+        String newRefreshToken = jwtService.generateRefreshToken(userId);
+        return LoginResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .roles(roles)
+                .build();
+    }
+
+    private SignedJWT verifyToken(String refreshToken) throws ParseException, JOSEException {
+        return jwtService.validateToken(refreshToken);
+    }
+
 }

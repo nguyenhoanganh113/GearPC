@@ -1,9 +1,14 @@
 package com.gearpc.identity.application.service.impl;
 
+import com.gearpc.common.exception.AppException;
+import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.identity.application.service.JwtService;
 import com.gearpc.identity.config.JwtProperties;
 import com.gearpc.identity.domain.valueobject.enums.TokenType;
 import com.gearpc.identity.jwt.JwtClaims;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -12,8 +17,10 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -55,6 +62,21 @@ public class JwtServiceImpl implements JwtService {
                 .build();
 
         return encode(claims);
+    }
+
+    @Override
+    public SignedJWT validateToken(String token) throws ParseException, JOSEException {
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
+
+        if(expiration.before(new Date()))
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);
+
+        boolean verify = signedJWT.verify(new MACVerifier(jwtProperties.getSecretKey()));
+        if(!verify)
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+
+        return signedJWT;
     }
 
     private String encode(JwtClaimsSet claims) {

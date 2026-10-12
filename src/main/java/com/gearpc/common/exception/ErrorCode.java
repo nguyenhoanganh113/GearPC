@@ -66,6 +66,9 @@ public enum ErrorCode {
             HttpStatus.UNAUTHORIZED
     ),
     EMAIL_NOT_VERIFIED(4004, "Tài khoản chưa xác minh email", HttpStatus.FORBIDDEN),
+
+    TOKEN_EXPIRED(5001, "Token đã hết hạn", HttpStatus.UNAUTHORIZED),
+    TOKEN_INVALID(5002, "Token không hợp lệ", HttpStatus.UNAUTHORIZED)
     ;
 
     private final int code;

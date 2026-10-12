@@ -7,14 +7,14 @@ import com.gearpc.identity.application.dto.response.LoginResponse;
 import com.gearpc.identity.application.dto.response.RegisterUserResponse;
 import com.gearpc.identity.application.service.AuthenticationService;
 import com.gearpc.identity.application.service.UserService;
+import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.text.ParseException;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,6 +36,24 @@ public class AuthController {
     ) {
         var data = authenticationService.login(request);
 
+        LoginResponse responseData = getResponseData(response, data);
+
+        return ApiResponse.success(responseData);
+    }
+
+    @PostMapping("/refresh-token")
+    ApiResponse<LoginResponse> refreshToken(
+            @CookieValue("refresh_token") String refreshToken, 
+            HttpServletResponse response
+    ) throws ParseException, JOSEException {
+        var data = authenticationService.refreshToken(refreshToken);
+
+        LoginResponse responseData = getResponseData(response, data);
+
+        return ApiResponse.success(responseData);
+    }
+
+    private static LoginResponse getResponseData(HttpServletResponse response, LoginResponse data) {
         // Lưu refresh token vào cookie
         Cookie cookie = new Cookie("refreshToken", data.refreshToken());
         cookie.setHttpOnly(true); // Ngăn chặn JavaScript từ việc truy cập Cookie (XSS protection)
@@ -45,13 +63,11 @@ public class AuthController {
         response.addCookie(cookie);
 
         // Tạo response mới không chứa refresh token
-        LoginResponse responseData = LoginResponse.builder()
+        return LoginResponse.builder()
                 .accessToken(data.accessToken())
-                .refreshToken(null) // Không trả về refresh token
+                .refreshToken(null)
                 .roles(data.roles())
                 .build();
-
-        return ApiResponse.success(responseData);
     }
 
 }
