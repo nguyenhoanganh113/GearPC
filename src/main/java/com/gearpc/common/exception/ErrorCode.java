@@ -60,12 +60,12 @@ public enum ErrorCode {
 
     USER_EXISTS(4001, "Người dùng đã tồn tại", HttpStatus.CONFLICT),
     USER_NOT_FOUND(4002, "Người dùng không thể tìm thấy!", HttpStatus.NOT_FOUND),
-    INVALID_CREDENTIALS(
-            4003,
-            "Email hoặc mật khẩu không đúng",
-            HttpStatus.UNAUTHORIZED
-    ),
+    INVALID_CREDENTIALS(4003, "Email hoặc mật khẩu không đúng", HttpStatus.UNAUTHORIZED),
     EMAIL_NOT_VERIFIED(4004, "Tài khoản chưa xác minh email", HttpStatus.FORBIDDEN),
+
+    TOKEN_EXPIRED(5001, "Token đã hết hạn", HttpStatus.UNAUTHORIZED),
+    TOKEN_INVALID(5002, "Token không hợp lệ", HttpStatus.UNAUTHORIZED),
+
     ;
 
     private final int code;

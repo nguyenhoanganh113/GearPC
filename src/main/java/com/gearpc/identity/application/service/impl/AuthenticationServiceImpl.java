@@ -6,9 +6,15 @@ import com.gearpc.identity.application.dto.request.LoginRequest;
 import com.gearpc.identity.application.dto.response.LoginResponse;
 import com.gearpc.identity.application.service.AuthenticationService;
 import com.gearpc.identity.application.service.JwtService;
+import com.gearpc.identity.domain.entity.RevokedToken;
 import com.gearpc.identity.domain.entity.User;
 import com.gearpc.identity.domain.valueobject.enums.RoleType;
+import com.gearpc.identity.domain.valueobject.enums.TokenType;
+import com.gearpc.identity.jwt.JwtClaims;
+import com.gearpc.identity.repository.RevokedTokenRepository;
 import com.gearpc.identity.repository.UserRepository;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,7 +23,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -30,6 +38,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final RevokedTokenRepository revokedTokenRepository;
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -68,4 +77,44 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .roles(roles)
                 .build();
     }
+
+    @Override
+    @Transactional
+    public LoginResponse refreshToken(String refreshToken) throws ParseException, JOSEException {
+
+        SignedJWT signedJWT = verifyToken(refreshToken);
+        String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
+
+        if (!TokenType.REFRESH_TOKEN.name().equals(
+                signedJWT.getJWTClaimsSet().getStringClaim(JwtClaims.TOKEN_TYPE))) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+
+        if (revokedTokenRepository.existsById(jwtId)) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+
+        UUID userId = UUID.fromString(signedJWT.getJWTClaimsSet().getSubject());
+        User user = userRepository.findWithRolesById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Set<String> roles = user.getUserHasRoles()
+                .stream()
+                .map(userRole -> userRole.getRole().getName().name())
+                .collect(Collectors.toSet());
+        String newAccessToken = jwtService.generateAccessToken(userId, roles);
+        String newRefreshToken = jwtService.generateRefreshToken(userId);
+
+        revokedTokenRepository.save(RevokedToken.builder().jti(jwtId).build());
+
+        return LoginResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .roles(roles)
+                .build();
+    }
+
+    private SignedJWT verifyToken(String refreshToken) throws ParseException, JOSEException {
+        return jwtService.validateToken(refreshToken);
+    }
+
 }
