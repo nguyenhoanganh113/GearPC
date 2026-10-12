@@ -7,7 +7,6 @@ import com.gearpc.identity.jwt.JwtClaims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -25,7 +24,6 @@ public class JwtServiceImpl implements JwtService {
 
     private final JwtProperties jwtProperties;
     private final JwtEncoder jwtEncoder;
-    private final JwtDecoder jwtDecoder;
 
     @Override
     public String generateAccessToken(UUID userId, Set<String> roles) {
