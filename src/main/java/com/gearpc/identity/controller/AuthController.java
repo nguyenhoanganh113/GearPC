@@ -43,7 +43,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     ApiResponse<LoginResponse> refreshToken(
-            @CookieValue("refresh_token") String refreshToken, 
+            @CookieValue("refreshToken") String refreshToken,
             HttpServletResponse response
     ) throws ParseException, JOSEException {
         var data = authenticationService.refreshToken(refreshToken);
