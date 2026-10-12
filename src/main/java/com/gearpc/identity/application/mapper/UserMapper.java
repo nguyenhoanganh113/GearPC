@@ -1,5 +1,6 @@
 package com.gearpc.identity.application.mapper;
 
+import com.gearpc.identity.application.dto.UserDetailResponse;
 import com.gearpc.identity.application.dto.request.RegisterUserRequest;
 import com.gearpc.identity.application.dto.response.RegisterUserResponse;
 import com.gearpc.identity.domain.entity.User;
@@ -18,6 +19,8 @@ public interface UserMapper {
     User toUser(RegisterUserRequest registerUserRequest);
 
     RegisterUserResponse toRegisterUserResponse(User user);
+
+    UserDetailResponse toUserDetailResponse(User user);
 
     default Gender toGender(String value) {
         if (value == null || value.isBlank()) {

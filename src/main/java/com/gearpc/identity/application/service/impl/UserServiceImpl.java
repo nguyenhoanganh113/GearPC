@@ -2,6 +2,7 @@ package com.gearpc.identity.application.service.impl;
 
 import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
+import com.gearpc.identity.application.dto.UserDetailResponse;
 import com.gearpc.identity.application.dto.request.RegisterUserRequest;
 import com.gearpc.identity.application.dto.response.RegisterUserResponse;
 import com.gearpc.identity.application.mapper.UserMapper;
@@ -16,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -57,5 +60,12 @@ public class UserServiceImpl implements UserService {
             );
             throw new AppException(ErrorCode.USER_EXISTS);
         }
+    }
+
+    @Override
+    public UserDetailResponse getMyProfile(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return userMapper.toUserDetailResponse(user);
     }
 }
