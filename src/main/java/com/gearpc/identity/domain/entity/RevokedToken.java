@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "revoked_tokens")
@@ -24,7 +25,7 @@ public class RevokedToken {
     private String jti;
 
     @Column(nullable = false)
-    private String userId;
+    private UUID userId;
 
     @Column(nullable = false)
     private Instant expiresAt;

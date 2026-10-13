@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -106,7 +107,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String newAccessToken = jwtService.generateAccessToken(userId, roles);
         String newRefreshToken = jwtService.generateRefreshToken(userId);
 
-        revokedTokenRepository.save(RevokedToken.builder().jti(jwtId).build());
+        Instant expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime().toInstant();
+
+        revokedTokenRepository.save(
+                RevokedToken.builder()
+                        .jti(jwtId)
+                        .userId(userId)
+                        .expiresAt(expirationTime)
+                        .build()
+        );
 
         return LoginResponse.builder()
                 .accessToken(newAccessToken)
@@ -127,13 +136,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication == null)
             throw new AppException(ErrorCode.TOKEN_INVALID);
-        String userId = authentication.getName();
+        UUID userId = UUID.fromString(authentication.getName());
 
         // 3. Validate refresh-token rồi lấy thông tin refreshToken bằng cách convert thành SignedJWT
         // SignedJWT cho phép lấy thông tin trong token để xét logic nào đó
         SignedJWT signedJWT = jwtService.validateToken(refreshToken);
 
-        String refreshUserId = signedJWT.getJWTClaimsSet().getSubject();
+        UUID refreshUserId = UUID.fromString(signedJWT.getJWTClaimsSet().getSubject());
         String refreshJwtId = signedJWT.getJWTClaimsSet().getJWTID();
         Instant expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime().toInstant();
 
