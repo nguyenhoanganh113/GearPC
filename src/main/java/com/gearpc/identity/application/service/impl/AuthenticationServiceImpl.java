@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -106,7 +107,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String newAccessToken = jwtService.generateAccessToken(userId, roles);
         String newRefreshToken = jwtService.generateRefreshToken(userId);
 
-        Instant expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime().toInstant();
+        Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
+        if (expiration == null) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+
+        Instant expirationTime = expiration.toInstant();
 
         revokedTokenRepository.save(
                 RevokedToken.builder()
@@ -143,7 +149,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         UUID refreshUserId = UUID.fromString(signedJWT.getJWTClaimsSet().getSubject());
         String refreshJwtId = signedJWT.getJWTClaimsSet().getJWTID();
-        Instant expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime().toInstant();
+        Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
 
         // 4. Verify userId từ access token và refresh token phải giống nhau
         // Tránh trường hợp user A dùng access token của mình + refresh token của user B
@@ -157,9 +163,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         }
 
-        if (expirationTime == null) {
+        if (expiration == null) {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         }
+
+        Instant expirationTime = expiration.toInstant();
 
         RevokedToken revokedToken = RevokedToken.builder()
                 .jti(refreshJwtId)
