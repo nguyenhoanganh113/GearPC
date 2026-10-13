@@ -21,11 +21,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -111,6 +113,56 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .refreshToken(newRefreshToken)
                 .roles(roles)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void logout(String refreshToken) throws ParseException, JOSEException {
+        // 1. Validate refresh token có tồn tại không
+        if (refreshToken == null) {
+            throw new AppException(ErrorCode.MISSING_LOGOUT_INFO);
+        }
+
+        // 2. Lấy thông tin user từ SecurityContext (từ access token)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication == null)
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        String userId = authentication.getName();
+
+        // 3. Validate refresh-token rồi lấy thông tin refreshToken bằng cách convert thành SignedJWT
+        // SignedJWT cho phép lấy thông tin trong token để xét logic nào đó
+        SignedJWT signedJWT = jwtService.validateToken(refreshToken);
+
+        String refreshUserId = signedJWT.getJWTClaimsSet().getSubject();
+        String refreshJwtId = signedJWT.getJWTClaimsSet().getJWTID();
+        Instant expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime().toInstant();
+
+        // 4. Verify userId từ access token và refresh token phải giống nhau
+        // Tránh trường hợp user A dùng access token của mình + refresh token của user B
+        if (!userId.equals(refreshUserId)) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+
+        // 5. Kiểm tra xem token gửi trong cookie có phải refreshToken hay không ?
+        String claim = signedJWT.getJWTClaimsSet().getStringClaim(JwtClaims.TOKEN_TYPE);
+        if (!TokenType.REFRESH_TOKEN.name().equals(claim)) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+
+        if (expirationTime == null) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
+
+        RevokedToken revokedToken = RevokedToken.builder()
+                .jti(refreshJwtId)
+                .userId(userId)
+                .expiresAt(expirationTime)
+                .build();
+
+        if (!revokedTokenRepository.existsById(refreshJwtId)) {
+            revokedTokenRepository.save(revokedToken);
+        }
+
     }
 
     private SignedJWT verifyToken(String refreshToken) throws ParseException, JOSEException {

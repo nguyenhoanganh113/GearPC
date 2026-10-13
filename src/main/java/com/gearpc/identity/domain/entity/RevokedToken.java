@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "revoked_tokens")
 @Getter
@@ -20,5 +22,11 @@ public class RevokedToken {
     @Id
     @Column(length = 36)
     private String jti;
+
+    @Column(nullable = false)
+    private String userId;
+
+    @Column(nullable = false)
+    private Instant expiresAt;
 
 }
