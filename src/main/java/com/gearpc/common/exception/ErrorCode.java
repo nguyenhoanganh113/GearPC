@@ -65,6 +65,7 @@ public enum ErrorCode {
 
     TOKEN_EXPIRED(5001, "Token đã hết hạn", HttpStatus.UNAUTHORIZED),
     TOKEN_INVALID(5002, "Token không hợp lệ", HttpStatus.UNAUTHORIZED),
+    MISSING_LOGOUT_INFO(5003, "Thông tin đăng xuất bị thiếu", HttpStatus.NOT_FOUND)
 
     ;
 

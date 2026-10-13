@@ -66,8 +66,16 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public SignedJWT validateToken(String token) throws ParseException, JOSEException {
+
         SignedJWT signedJWT = SignedJWT.parse(token);
+
         Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
+
+        String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
+
+        if (expiration == null || jwtId == null) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
 
         if(expiration.before(new Date()))
             throw new AppException(ErrorCode.TOKEN_EXPIRED);

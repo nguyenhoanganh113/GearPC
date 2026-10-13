@@ -53,6 +53,28 @@ public class AuthController {
         return ApiResponse.success(responseData);
     }
 
+    @PostMapping("/logout")
+    ApiResponse<Void> logout(
+            @CookieValue("refreshToken") String refreshToken,
+            HttpServletResponse response
+    ) throws ParseException, JOSEException {
+        // 1. Gọi service để thu hồi token
+        authenticationService.logout(refreshToken);
+
+        // 2. Xóa refresh token cookie
+        // Set value = "" và maxAge = 0 để browser xóa cookie
+        Cookie cookie = new Cookie("refreshToken", "");
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setMaxAge(0); // Xóa cookie ngay lập tức
+
+        response.addCookie(cookie);
+
+        return ApiResponse.success();
+
+    }
+
     private static LoginResponse getResponseData(HttpServletResponse response, LoginResponse data) {
         // Lưu refresh token vào cookie
         Cookie cookie = new Cookie("refreshToken", data.refreshToken());
