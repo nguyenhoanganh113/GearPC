@@ -4,6 +4,7 @@ import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.identity.application.dto.UserDetailResponse;
 import com.gearpc.identity.application.dto.request.RegisterUserRequest;
+import com.gearpc.identity.application.dto.response.AdminUserResponse;
 import com.gearpc.identity.application.dto.response.RegisterUserResponse;
 import com.gearpc.identity.application.mapper.UserMapper;
 import com.gearpc.identity.application.service.UserService;
@@ -18,6 +19,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -67,5 +69,13 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return userMapper.toUserDetailResponse(user);
+    }
+
+    @Override
+    public List<AdminUserResponse> getAllUser() {
+        return userRepository.findAll()
+                .stream()
+                .map(userMapper::toAdminUserResponse)
+                .toList();
     }
 }
