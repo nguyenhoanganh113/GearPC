@@ -3,7 +3,7 @@ package com.gearpc.identity.application.service.impl;
 import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.identity.application.service.JwtService;
-import com.gearpc.identity.config.JwtProperties;
+import com.gearpc.identity.config.security.JwtProperties;
 import com.gearpc.identity.domain.valueobject.enums.TokenType;
 import com.gearpc.identity.jwt.JwtClaims;
 import com.nimbusds.jose.JOSEException;
