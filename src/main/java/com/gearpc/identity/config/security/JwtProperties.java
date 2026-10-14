@@ -1,4 +1,4 @@
-package com.gearpc.identity.config;
+package com.gearpc.identity.config.security;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

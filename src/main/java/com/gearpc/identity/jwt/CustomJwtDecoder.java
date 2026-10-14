@@ -1,6 +1,6 @@
 package com.gearpc.identity.jwt;
 
-import com.gearpc.identity.config.JwtProperties;
+import com.gearpc.identity.config.security.JwtProperties;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
