@@ -75,6 +75,22 @@ public class AuthController {
 
     }
 
+    @PostMapping("/logout-all")
+    ApiResponse<Void> logoutAll(HttpServletResponse response) {
+        authenticationService.logoutAll();
+
+        Cookie cookie = new Cookie("refreshToken", "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+
+        response.addCookie(cookie);
+
+        return ApiResponse.success();
+    }
+
+
     private static LoginResponse getResponseData(HttpServletResponse response, LoginResponse data) {
         // Lưu refresh token vào cookie
         Cookie cookie = new Cookie("refreshToken", data.refreshToken());

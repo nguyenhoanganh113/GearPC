@@ -2,11 +2,12 @@ package com.gearpc.identity.application.service.impl;
 
 import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
+import com.gearpc.identity.application.dto.response.TokenDetails;
 import com.gearpc.identity.application.service.JwtService;
 import com.gearpc.identity.config.security.JwtProperties;
 import com.gearpc.identity.domain.valueobject.enums.TokenType;
 import com.gearpc.identity.jwt.JwtClaims;
-import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -49,23 +51,90 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateRefreshToken(UUID userId) {
-        Instant now = Instant.now();
+    public TokenDetails generateRefreshToken(
+            UUID userId,
+            Instant expiresAt
+    ) {
+        Instant issueAt = Instant.now();
+
+        if (!expiresAt.isAfter(issueAt)) {
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);
+        }
+
+        String jti = UUID.randomUUID().toString();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(userId.toString())
                 .issuer(jwtProperties.getIssuer())
-                .issuedAt(now)
-                .expiresAt(now.plus(14, ChronoUnit.DAYS))
-                .id(UUID.randomUUID().toString())
+                .issuedAt(issueAt)
+                .expiresAt(expiresAt)
+                .id(jti)
+                .claim(
+                        JwtClaims.TOKEN_TYPE,
+                        TokenType.REFRESH_TOKEN.name()
+                )
+                .build();
+
+        JwsHeader header = JwsHeader
+                .with(MacAlgorithm.HS512)
+                .build();
+
+        String tokenValue = jwtEncoder
+                .encode(JwtEncoderParameters.from(header, claims))
+                .getTokenValue();
+
+        long ttl = Duration.between(
+                issueAt,
+                expiresAt
+        ).getSeconds();
+
+        return new TokenDetails(
+                tokenValue,
+                jti,
+                expiresAt,
+                ttl
+        );
+    }
+
+    @Override
+    public TokenDetails generateRefreshToken(UUID userId) {
+        Instant issueAt = Instant.now(); // Thời điểm token được phát hành
+        Instant expiresAt = issueAt.plus(14, ChronoUnit.DAYS);
+        String jti = UUID.randomUUID().toString();
+
+        JwsHeader header = JwsHeader
+                .with(MacAlgorithm.HS512)
+                .build();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .subject(userId.toString())
+                .issuer(jwtProperties.getIssuer())
+                .issuedAt(issueAt)
+                .expiresAt(expiresAt)
+                .id(jti)
                 .claim(JwtClaims.TOKEN_TYPE, TokenType.REFRESH_TOKEN.name())
                 .build();
 
-        return encode(claims);
+        String tokenValue = jwtEncoder
+                .encode(JwtEncoderParameters.from(header, claims))
+                .getTokenValue();
+
+        long ttl = Duration.between(Instant.now(), expiresAt).getSeconds();
+
+        return TokenDetails.builder()
+                .value(tokenValue)
+                .jti(jti)
+                .expiresAt(expiresAt)
+                .ttl(ttl)
+                .build();
     }
 
     @Override
     public SignedJWT validateToken(String token) throws ParseException, JOSEException {
+
+        if (token == null || token.isBlank()) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
+        }
 
         SignedJWT signedJWT = SignedJWT.parse(token);
 
