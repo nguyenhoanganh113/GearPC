@@ -4,14 +4,14 @@ import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.identity.application.dto.request.LoginRequest;
 import com.gearpc.identity.application.dto.response.LoginResponse;
+import com.gearpc.identity.application.dto.response.TokenDetails;
 import com.gearpc.identity.application.service.AuthenticationService;
 import com.gearpc.identity.application.service.JwtService;
-import com.gearpc.identity.domain.entity.RevokedToken;
+import com.gearpc.identity.application.service.RedisService;
 import com.gearpc.identity.domain.entity.User;
 import com.gearpc.identity.domain.valueobject.enums.RoleType;
 import com.gearpc.identity.domain.valueobject.enums.TokenType;
 import com.gearpc.identity.jwt.JwtClaims;
-import com.gearpc.identity.repository.RevokedTokenRepository;
 import com.gearpc.identity.repository.UserRepository;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
@@ -41,7 +41,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final RevokedTokenRepository revokedTokenRepository;
+    private final RedisService redisService;
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -72,11 +72,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .collect(Collectors.toSet());
 
         String accessToken = jwtService.generateAccessToken(userId, roles);
-        String refreshToken = jwtService.generateRefreshToken(userId);
+        TokenDetails refreshToken = jwtService.generateRefreshToken(userId);
+
+        redisService.saveUserSession(refreshToken.jti(), userId, refreshToken.expiresAt(), refreshToken.ttl());
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(refreshToken.value())
                 .roles(roles)
                 .build();
     }
@@ -86,14 +88,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public LoginResponse refreshToken(String refreshToken) throws ParseException, JOSEException {
 
         SignedJWT signedJWT = verifyToken(refreshToken);
-        String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
 
-        if (!TokenType.REFRESH_TOKEN.name().equals(
-                signedJWT.getJWTClaimsSet().getStringClaim(JwtClaims.TOKEN_TYPE))) {
+        String oldJti = signedJWT.getJWTClaimsSet().getJWTID();
+
+        String tokenType = signedJWT.getJWTClaimsSet().getStringClaim(JwtClaims.TOKEN_TYPE);
+
+        if (!TokenType.REFRESH_TOKEN.name().equals(tokenType)) {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         }
 
-        if (revokedTokenRepository.existsById(jwtId)) {
+        if (!redisService.isRefreshTokenSessionActive(oldJti)) {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         }
 
@@ -104,8 +108,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .stream()
                 .map(userRole -> userRole.getRole().getName().name())
                 .collect(Collectors.toSet());
-        String newAccessToken = jwtService.generateAccessToken(userId, roles);
-        String newRefreshToken = jwtService.generateRefreshToken(userId);
 
         Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();
         if (expiration == null) {
@@ -114,17 +116,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         Instant expirationTime = expiration.toInstant();
 
-        revokedTokenRepository.save(
-                RevokedToken.builder()
-                        .jti(jwtId)
-                        .userId(userId)
-                        .expiresAt(expirationTime)
-                        .build()
+        String newAccessToken = jwtService.generateAccessToken(userId, roles);
+        TokenDetails newRefreshToken = jwtService.generateRefreshToken(userId, expirationTime);
+
+        // Xóa refreshToken dựa theo jti trong white list
+        redisService.deleteUserSession(oldJti);
+
+        // Lưu refresh token mới
+        redisService.saveUserSession(
+                newRefreshToken.jti(),
+                userId,
+                newRefreshToken.expiresAt(),
+                newRefreshToken.ttl()
         );
 
         return LoginResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
+                .refreshToken(newRefreshToken.value())
                 .roles(roles)
                 .build();
     }
@@ -158,8 +166,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         // 5. Kiểm tra xem token gửi trong cookie có phải refreshToken hay không ?
-        String claim = signedJWT.getJWTClaimsSet().getStringClaim(JwtClaims.TOKEN_TYPE);
-        if (!TokenType.REFRESH_TOKEN.name().equals(claim)) {
+        String tokenType = signedJWT.getJWTClaimsSet().getStringClaim(JwtClaims.TOKEN_TYPE);
+        if (!TokenType.REFRESH_TOKEN.name().equals(tokenType)) {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         }
 
@@ -167,18 +175,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new AppException(ErrorCode.TOKEN_INVALID);
         }
 
-        Instant expirationTime = expiration.toInstant();
+        redisService.deleteUserSession(refreshJwtId);
 
-        RevokedToken revokedToken = RevokedToken.builder()
-                .jti(refreshJwtId)
-                .userId(userId)
-                .expiresAt(expirationTime)
-                .build();
+    }
 
-        if (!revokedTokenRepository.existsById(refreshJwtId)) {
-            revokedTokenRepository.save(revokedToken);
+    @Override
+    @Transactional
+    public void logoutAll() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
         }
 
+        UUID userId = UUID.fromString(authentication.getName());
+
+        redisService.deleteAllUserSessions(userId);
     }
 
     private SignedJWT verifyToken(String refreshToken) throws ParseException, JOSEException {

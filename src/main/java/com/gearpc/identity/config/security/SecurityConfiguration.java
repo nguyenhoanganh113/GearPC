@@ -1,7 +1,6 @@
 package com.gearpc.identity.config.security;
 
 import com.gearpc.identity.application.service.CustomUserDetailService;
-import com.gearpc.identity.jwt.CustomJwtDecoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +15,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -29,7 +29,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 public class SecurityConfiguration {
 
     private final CustomUserDetailService customUserDetailService;
-    private final CustomJwtDecoder customJwtDecoder;
+    //private final CustomJwtDecoder customJwtDecoder;
+    private final JwtDecoder jwtDecoder;
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final AccessDeniedHandler accessDeniedHandler;
 
@@ -47,13 +48,14 @@ public class SecurityConfiguration {
                 )
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/logout").authenticated()
+                        .requestMatchers("/api/v1/auth/logout", "/api/v1/auth/logout-all").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/redis/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwtConfigurer -> jwtConfigurer
-                                .decoder(customJwtDecoder)
+                                .decoder(jwtDecoder)
                                 // Chỉ định bean mà đã cấu hình cách Spring security đọc trong SecurityContextHolder
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(authenticationEntryPoint)
