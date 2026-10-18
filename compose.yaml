@@ -43,7 +43,7 @@ services:
 
   # Cấu hình cho Keycloak
   keycloak:
-    image: quay.io/keycloak/keycloak:lastest
+    image: quay.io/keycloak/keycloak:latest
     container_name: keycloak
     depends_on:
       keycloak_db:
