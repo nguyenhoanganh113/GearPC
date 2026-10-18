@@ -29,10 +29,67 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 public class SecurityConfiguration {
 
     private final CustomUserDetailService customUserDetailService;
-    //private final CustomJwtDecoder customJwtDecoder;
-    private final JwtDecoder jwtDecoder;
-    private final AuthenticationEntryPoint authenticationEntryPoint;
-    private final AccessDeniedHandler accessDeniedHandler;
+
+//    private final CustomUserDetailService customUserDetailService;
+//    //private final CustomJwtDecoder customJwtDecoder;
+//    private final JwtDecoder jwtDecoder;
+//    private final AuthenticationEntryPoint authenticationEntryPoint;
+//    private final AccessDeniedHandler accessDeniedHandler;
+//
+//
+//
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+//        http
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .sessionManagement(session -> session
+//                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+//                )
+//                .cors(Customizer.withDefaults())
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/oauth2/**", "/login/**").permitAll()
+//                        .requestMatchers("/api/v1/auth/logout", "/api/v1/auth/logout-all").authenticated()
+//                        .requestMatchers("/api/v1/auth/**").permitAll()
+//                        .requestMatchers("/api/v1/redis/**").permitAll()
+//                        .anyRequest().authenticated()
+//                )
+//                .oauth2ResourceServer(oauth2 -> oauth2
+//                        .jwt(jwtConfigurer -> jwtConfigurer
+//                                .decoder(jwtDecoder)
+//                                // Chỉ định bean mà đã cấu hình cách Spring security đọc trong SecurityContextHolder
+//                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+//                        .authenticationEntryPoint(authenticationEntryPoint)
+//                        .accessDeniedHandler(accessDeniedHandler)
+//                )
+//                .oauth2Login(Customizer.withDefaults());
+//        return http.build();
+//    }
+//
+//    @Bean
+//    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+//        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+//        jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("roles");
+//        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
+//
+//        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+//        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+//        return jwtAuthenticationConverter;
+//    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/login.html", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .anyRequest().authenticated())
+                .oauth2Login(oauth2LoginConfigurer -> oauth2LoginConfigurer
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
+                );
+
+        return http.build();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -40,46 +97,10 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/logout", "/api/v1/auth/logout-all").authenticated()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/redis/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwtConfigurer -> jwtConfigurer
-                                .decoder(jwtDecoder)
-                                // Chỉ định bean mà đã cấu hình cách Spring security đọc trong SecurityContextHolder
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler)
-                );
-        return http.build();
-    }
-
-    @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailService);
         provider.setPasswordEncoder(passwordEncoder());
         return new ProviderManager(provider);
-    }
-
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("roles");
-        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-        return jwtAuthenticationConverter;
     }
 
 }
