@@ -24,10 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.Set;
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,13 +54,6 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
-    public UserDetailResponse getMyProfile(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return userMapper.toUserDetailResponse(user);
-    }
-
-    @Override
     public List<AdminUserResponse> getAllUser() {
         return userRepository.findAll()
                 .stream()
@@ -72,17 +62,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetailResponse getMyProfileByKeycloakId(UUID keycloakId) {
-        User user = userRepository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-        return userMapper.toUserDetailResponse(user);
-    }
-
-    @Override
     @Transactional
     public UserDetailResponse getOrCreateProfile(Jwt jwt, Authentication authentication) {
-        UUID keycloakId = UUID.fromString(jwt.getSubject());
+        UUID keycloakId = UUID.fromString(Objects.requireNonNull(jwt.getSubject()));
 
         User user = userRepository.findByKeycloakId(keycloakId)
                 .orElseGet(() -> createUserFromKeycloak(jwt, keycloakId));
@@ -96,6 +78,7 @@ public class UserServiceImpl implements UserService {
 
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .filter(Objects::nonNull)
                 .map(authority -> authority.replaceFirst("^ROLE_", ""))
                 .filter(role -> Arrays.stream(RoleType.values())
                         .map(Enum::name)
@@ -116,22 +99,11 @@ public class UserServiceImpl implements UserService {
     }
 
     private User createUserFromKeycloak(Jwt jwt, UUID keycloakId) {
-        String email = firstNonBlank(
-                jwt.getClaimAsString("email"),
-                jwt.getClaimAsString("preferred_username"),
-                keycloakId.toString()
-        );
 
-        String firstName = firstNonBlank(
-                jwt.getClaimAsString("given_name"),
-                jwt.getClaimAsString("preferred_username"),
-                "User"
-        );
+        String email = firstNonBlank(jwt.getClaimAsString("email"));
 
-        String lastName = firstNonBlank(
-                jwt.getClaimAsString("family_name"),
-                ""
-        );
+        String firstName = requiredClaim(jwt, "given_name");
+        String lastName = requiredClaim(jwt, "family_name");
 
         User user = User.builder()
                 .keycloakId(keycloakId)
@@ -154,5 +126,17 @@ public class UserServiceImpl implements UserService {
             }
         }
         return "";
+    }
+
+    private String requiredClaim(Jwt jwt, String claimName) {
+        String value = jwt.getClaimAsString(claimName);
+
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException(
+                    "Keycloak token does not contain required claim: " + claimName
+            );
+        }
+
+        return value.trim();
     }
 }

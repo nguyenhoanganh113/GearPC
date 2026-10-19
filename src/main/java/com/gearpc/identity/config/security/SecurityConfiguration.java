@@ -1,27 +1,14 @@
 package com.gearpc.identity.config.security;
 
-import com.gearpc.identity.application.service.CustomUserDetailService;
 import com.gearpc.identity.config.security.converter.AuthoritiesConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -29,9 +16,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-//    private final CustomUserDetailService customUserDetailService;
-    private final AuthoritiesConverter authoritiesConverter;
-
+//    private final CustomUserDetailService customUserDetailService
 //    private final CustomUserDetailService customUserDetailService;
 //    //private final CustomJwtDecoder customJwtDecoder;
 //    private final JwtDecoder jwtDecoder;
@@ -78,11 +63,13 @@ public class SecurityConfiguration {
 //        return jwtAuthenticationConverter;
 //    }
 
+    private final AuthoritiesConverter authoritiesConverter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationConverter jwtAuthenticationConverter
-    ) throws Exception {
+    ) {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/login.html", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/**").permitAll()
@@ -101,28 +88,25 @@ public class SecurityConfiguration {
         return http.build();
     }
 
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
-//
-//    @Bean
-//    public AuthenticationManager authenticationManager() {
-//        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailService);
-//        provider.setPasswordEncoder(passwordEncoder());
-//        return new ProviderManager(provider);
-//    }
+    /*
+       @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+
+        @Bean
+       public AuthenticationManager authenticationManager() {
+            DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailService);
+            provider.setPasswordEncoder(passwordEncoder());
+            return new ProviderManager(provider);
+     **/
 
     @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter(
-    ) {
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-                jwt -> authoritiesConverter.convert(jwt.getClaims())
-        );
-
+                jwt -> authoritiesConverter.convert(jwt.getClaims()));
         return jwtAuthenticationConverter;
     }
 
