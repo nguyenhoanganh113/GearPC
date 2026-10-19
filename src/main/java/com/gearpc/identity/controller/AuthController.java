@@ -1,5 +1,7 @@
 package com.gearpc.identity.controller;
 
+/*
+
 import com.gearpc.common.dto.ApiResponse;
 import com.gearpc.identity.application.dto.request.LoginRequest;
 import com.gearpc.identity.application.dto.request.RegisterUserRequest;
@@ -24,10 +26,10 @@ public class AuthController {
     private final UserService userService;
     private final AuthenticationService authenticationService;
 
-    @PostMapping("/register")
-    ApiResponse<RegisterUserResponse> registerUser(@RequestBody @Valid RegisterUserRequest registerUserRequest) {
-        return ApiResponse.created(userService.registerUser(registerUserRequest));
-    }
+//    @PostMapping("/register")
+//    ApiResponse<RegisterUserResponse> registerUser(@RequestBody @Valid RegisterUserRequest registerUserRequest) {
+//        return ApiResponse.created(userService.registerUser(registerUserRequest));
+//    }
 
     @PostMapping("/login")
     ApiResponse<LoginResponse> login(
@@ -109,3 +111,4 @@ public class AuthController {
     }
 
 }
+*/

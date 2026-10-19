@@ -28,6 +28,7 @@ public class JwtConfiguration {
         );
     }
 
+    /*
     @Bean
     public JwtDecoder jwtDecoder(SecretKey jwtSecretKey) {
         return NimbusJwtDecoder
@@ -35,6 +36,7 @@ public class JwtConfiguration {
                 .macAlgorithm(MacAlgorithm.HS512)
                 .build();
     }
+     */
 
     @Bean
     public JwtEncoder jwtEncoder(SecretKey jwtSecretKey) {

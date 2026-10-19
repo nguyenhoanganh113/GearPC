@@ -23,4 +23,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     })
     Optional<User> findWithRolesById(UUID id);
 
+    Optional<User> findByKeycloakId(UUID keycloakId);
 }

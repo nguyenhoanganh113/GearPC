@@ -37,7 +37,7 @@ services:
     volumes:
       - keycloak_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
       interval: 5s # Docker sẽ run healthcheck mỗi 5 giây
       timeout: 5s # Trong khoảng thời gian này nếu không run thì thất bại
       retries: 5 # Container bị đánh dấu unhealthy sau từng này lần thất bại liên tiếp

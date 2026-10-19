@@ -1,6 +1,7 @@
 package com.gearpc.identity.config.security;
 
 import com.gearpc.identity.application.service.CustomUserDetailService;
+import com.gearpc.identity.config.security.converter.AuthoritiesConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +29,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-    private final CustomUserDetailService customUserDetailService;
+//    private final CustomUserDetailService customUserDetailService;
+    private final AuthoritiesConverter authoritiesConverter;
 
 //    private final CustomUserDetailService customUserDetailService;
 //    //private final CustomJwtDecoder customJwtDecoder;
@@ -77,7 +79,10 @@ public class SecurityConfiguration {
 //    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationConverter jwtAuthenticationConverter
+    ) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/login.html", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/**").permitAll()
@@ -86,21 +91,39 @@ public class SecurityConfiguration {
                 .oauth2Login(oauth2LoginConfigurer -> oauth2LoginConfigurer
                         .loginPage("/login")
                         .defaultSuccessUrl("/", true)
+                )
+                .oauth2ResourceServer(resourceService -> resourceService
+                        .jwt(jwtConfigurer -> jwtConfigurer
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter)
+                        )
                 );
 
         return http.build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
+//
+//    @Bean
+//    public AuthenticationManager authenticationManager() {
+//        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailService);
+//        provider.setPasswordEncoder(passwordEncoder());
+//        return new ProviderManager(provider);
+//    }
 
     @Bean
-    public AuthenticationManager authenticationManager() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return new ProviderManager(provider);
+    public JwtAuthenticationConverter jwtAuthenticationConverter(
+    ) {
+
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
+                jwt -> authoritiesConverter.convert(jwt.getClaims())
+        );
+
+        return jwtAuthenticationConverter;
     }
 
 }

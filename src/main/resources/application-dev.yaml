@@ -10,11 +10,16 @@ spring:
   # Cấu hình Security
   security:
     oauth2:
+
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/gearpc
+
       client:
         registration:
           keycloak:
             client-id: gear-pc-app
-            client-secret: t13r7IrkBxCxIe7ISnZqrNQOiIiKhtVa
+            client-secret: FeeCja5BfvZE6q2DyXGkvmfb65BLCsvz
             scope:
               - openid
               - profile
