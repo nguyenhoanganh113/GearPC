@@ -1,14 +1,9 @@
 package com.gearpc.identity.application.service.impl;
 
-import com.gearpc.common.exception.AppException;
-import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.identity.application.dto.UserDetailResponse;
-import com.gearpc.identity.application.dto.request.RegisterUserRequest;
 import com.gearpc.identity.application.dto.response.AdminUserResponse;
-import com.gearpc.identity.application.dto.response.RegisterUserResponse;
 import com.gearpc.identity.application.mapper.UserMapper;
 import com.gearpc.identity.application.service.UserService;
-import com.gearpc.identity.domain.entity.Role;
 import com.gearpc.identity.domain.entity.User;
 import com.gearpc.identity.domain.valueobject.enums.RoleType;
 import com.gearpc.identity.domain.valueobject.enums.UserStatus;
@@ -16,8 +11,6 @@ import com.gearpc.identity.repository.RoleRepository;
 import com.gearpc.identity.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.core.Authentication;

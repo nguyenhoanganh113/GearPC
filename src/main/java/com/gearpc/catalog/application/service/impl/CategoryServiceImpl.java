@@ -62,6 +62,8 @@ public class CategoryServiceImpl implements CategoryService {
                 .pageSize(categoryPage.getSize())
                 .totalPages(categoryPage.getTotalPages())
                 .totalElements(categoryPage.getTotalElements())
+                .first(categoryPage.isFirst())
+                .last(categoryPage.isLast())
                 .content(content)
                 .build();
     }
