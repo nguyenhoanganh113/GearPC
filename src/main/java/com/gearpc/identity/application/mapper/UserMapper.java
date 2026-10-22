@@ -27,7 +27,6 @@ public interface UserMapper {
 
     RegisterUserResponse toRegisterUserResponse(User user);
 
-    @Mapping(target = "roles", ignore = true)
     UserDetailResponse toUserDetailResponse(User user);
 
     @Mapping(

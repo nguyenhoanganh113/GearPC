@@ -5,7 +5,6 @@ import com.gearpc.identity.application.dto.response.AdminUserResponse;
 
 import java.util.List;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.core.Authentication;
 
 public interface UserService {
 
@@ -13,6 +12,6 @@ public interface UserService {
 
     List<AdminUserResponse> getAllUser();
 
-    UserDetailResponse getOrCreateProfile(Jwt jwt, Authentication authentication);
+    UserDetailResponse getOrCreateProfile(Jwt jwt);
 
 }

@@ -5,7 +5,6 @@ import com.gearpc.identity.application.dto.UserDetailResponse;
 import com.gearpc.identity.application.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,11 +20,10 @@ public class UserController {
 
     @GetMapping("/me")
     public ApiResponse<UserDetailResponse> getMyProfile(
-            @AuthenticationPrincipal Jwt jwt,
-            Authentication authentication
+            @AuthenticationPrincipal Jwt jwt
     ) {
         return ApiResponse.success(
-                userService.getOrCreateProfile(jwt, authentication)
+                userService.getOrCreateProfile(jwt)
         );
     }
 

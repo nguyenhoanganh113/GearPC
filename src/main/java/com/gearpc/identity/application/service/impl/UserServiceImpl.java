@@ -5,20 +5,15 @@ import com.gearpc.identity.application.dto.response.AdminUserResponse;
 import com.gearpc.identity.application.mapper.UserMapper;
 import com.gearpc.identity.application.service.UserService;
 import com.gearpc.identity.domain.entity.User;
-import com.gearpc.identity.domain.valueobject.enums.RoleType;
 import com.gearpc.identity.domain.valueobject.enums.UserStatus;
-import com.gearpc.identity.repository.RoleRepository;
 import com.gearpc.identity.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +50,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDetailResponse getOrCreateProfile(Jwt jwt, Authentication authentication) {
+    public UserDetailResponse getOrCreateProfile(Jwt jwt) {
         UUID keycloakId = UUID.fromString(Objects.requireNonNull(jwt.getSubject()));
 
         User user = userRepository.findByKeycloakId(keycloakId)
@@ -68,15 +63,6 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
         }
 
-        Set<String> roles = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .filter(Objects::nonNull)
-                .map(authority -> authority.replaceFirst("^ROLE_", ""))
-                .filter(role -> Arrays.stream(RoleType.values())
-                        .map(Enum::name)
-                        .anyMatch(role::equals))
-                .collect(Collectors.toSet());
-
         return UserDetailResponse.builder()
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
@@ -86,7 +72,6 @@ public class UserServiceImpl implements UserService {
                 .avatarKey(user.getAvatarKey())
                 .userStatus(user.getUserStatus())
                 .emailVerified(user.isEmailVerified())
-                .roles(roles)
                 .build();
     }
 
