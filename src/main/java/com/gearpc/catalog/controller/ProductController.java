@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -28,18 +29,21 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('PERM_CREATE_PRODUCT')")
     public ApiResponse<CreateProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
         CreateProductResponse createProductResponse = productService.createProduct(request);
         return ApiResponse.created(createProductResponse);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_READ_PRODUCT')")
     public ApiResponse<DetailProductResponse> getProductById(@NonNull @PathVariable UUID id) {
         DetailProductResponse response = productService.getProduct(id);
         return ApiResponse.success(response);
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAuthority('PERM_READ_PRODUCT')")
     public ApiResponse<PaginationResponse<DetailProductResponse>> searchProductsForAdmin(
             @PageableDefault(
                     size = 15,
@@ -54,6 +58,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_PRODUCT')")
     public ApiResponse<UpdateProductResponse> updateProduct(
             @NonNull @PathVariable UUID id,
             @Valid @RequestBody UpdateProductRequest request
@@ -63,6 +68,7 @@ public class ProductController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_PRODUCT')")
     public ApiResponse<UpdateProductResponse> updateProductStatus(
             @NonNull @PathVariable UUID id,
             @Valid @RequestBody UpdateProductStatusRequest request
@@ -72,6 +78,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_DELETE_PRODUCT')")
     public ApiResponse<Void> deleteProduct(@NonNull @PathVariable UUID id) {
         productService.deleteProduct(id);
         return ApiResponse.success();

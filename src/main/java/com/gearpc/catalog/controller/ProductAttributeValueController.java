@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +25,7 @@ public class ProductAttributeValueController {
     private final ProductAttributeValueService productAttributeValueService;
 
     @GetMapping("/{productId}/attributes")
+    @PreAuthorize("hasAuthority('PERM_READ_PRODUCT')")
     public ApiResponse<List<ProductAttributeValueResponse>> getProductAttributeValues(
             @PathVariable UUID productId
     ) {
@@ -31,6 +33,7 @@ public class ProductAttributeValueController {
     }
 
     @PutMapping("/{productId}/attributes")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_PRODUCT')")
     public ApiResponse<List<ProductAttributeValueResponse>> syncProductAttributeValues(
             @PathVariable UUID productId,
             @Valid @RequestBody UpdateProductAttributeValuesRequest request

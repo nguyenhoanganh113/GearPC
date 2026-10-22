@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,12 +25,15 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+//@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("denyAll()")
 @RequestMapping("/api/v1/admin/brands")
 public class BrandController {
 
     private final BrandService brandService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('PERM_CREATE_BRAND')")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreateBrandResponse> createBrand(@Valid @RequestBody CreateBrandRequest request) {
         CreateBrandResponse response = brandService.createBrand(request);
@@ -37,6 +41,7 @@ public class BrandController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAuthority('PERM_READ_BRAND')")
     public ApiResponse<PaginationResponse<DetailBrandResponse>> searchBrandsForAdmin(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean active,
@@ -55,18 +60,21 @@ public class BrandController {
     }
 
     @GetMapping("/options")
+    @PreAuthorize("hasAuthority('PERM_READ_BRAND')")
     public ApiResponse<List<BrandOptionResponse>> getActiveBrandOptions() {
         List<BrandOptionResponse> options = brandService.getActiveBrandOptions();
         return ApiResponse.success(options);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_READ_BRAND')")
     public ApiResponse<DetailBrandResponse> getBrandById(@NonNull @PathVariable UUID id) {
         DetailBrandResponse response = brandService.getBrand(id);
         return ApiResponse.success(response);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_BRAND')")
     public ApiResponse<UpdateBrandResponse> updateBrand(
             @NonNull @PathVariable UUID id,
             @Valid @RequestBody UpdateBrandRequest request
@@ -76,6 +84,7 @@ public class BrandController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_BRAND')")
     public ApiResponse<UpdateBrandResponse> toggleBrandStatus(
             @NonNull @PathVariable UUID id,
             @RequestParam Boolean active
@@ -85,6 +94,7 @@ public class BrandController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_DELETE_BRAND')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> deleteBrand(@NonNull @PathVariable UUID id) {
         brandService.deleteBrand(id);
@@ -92,6 +102,7 @@ public class BrandController {
     }
 
     @PatchMapping("/{id}/restore")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_BRAND')")
     public ApiResponse<UpdateBrandResponse> restoreBrand(
             @NonNull @PathVariable UUID id
     ) {

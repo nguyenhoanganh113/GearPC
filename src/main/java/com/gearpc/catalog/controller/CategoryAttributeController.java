@@ -8,6 +8,7 @@ import com.gearpc.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class CategoryAttributeController {
     private final CategoryAttributeService categoryAttributeService;
 
     @PostMapping("/{categoryId}/attributes")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_CATEGORY')")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CategoryAttributeResponse> assignAttribute(
             @PathVariable UUID categoryId,
@@ -38,6 +40,7 @@ public class CategoryAttributeController {
     }
 
     @GetMapping("/{categoryId}/attributes")
+    @PreAuthorize("hasAuthority('PERM_READ_CATEGORY')")
     public ApiResponse<List<CategoryAttributeResponse>> getCategoryAttributes(
             @PathVariable UUID categoryId
     ) {
@@ -45,6 +48,7 @@ public class CategoryAttributeController {
     }
 
     @PatchMapping("/{categoryId}/attributes/{attributeDefinitionId}")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_CATEGORY')")
     public ApiResponse<CategoryAttributeResponse> updateRequired(
             @PathVariable UUID categoryId,
             @PathVariable UUID attributeDefinitionId,
@@ -60,6 +64,7 @@ public class CategoryAttributeController {
     }
 
     @DeleteMapping("/{categoryId}/attributes/{attributeDefinitionId}")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_CATEGORY')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> removeAttribute(
             @PathVariable UUID categoryId,

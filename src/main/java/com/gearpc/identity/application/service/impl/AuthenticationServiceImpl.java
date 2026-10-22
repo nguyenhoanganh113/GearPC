@@ -1,5 +1,7 @@
 package com.gearpc.identity.application.service.impl;
 
+/*
+
 import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.identity.application.dto.request.LoginRequest;
@@ -38,7 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private final AuthenticationManager authenticationManager;
+    //private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final RedisService redisService;
@@ -200,3 +202,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 }
+*/

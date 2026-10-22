@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Objects;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,9 +19,11 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ApiResponse<UserDetailResponse> getMyProfile(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<UserDetailResponse> getMyProfile(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
         return ApiResponse.success(
-                userService.getMyProfile(UUID.fromString(Objects.requireNonNull(jwt.getSubject())))
+                userService.getOrCreateProfile(jwt)
         );
     }
 

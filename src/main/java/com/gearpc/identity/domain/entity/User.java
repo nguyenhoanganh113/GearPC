@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -22,9 +23,6 @@ public class User extends BaseEntity {
     private String email;
 
     @Column(nullable = false)
-    private String passwordHash;
-
-    @Column(nullable = false)
     private String firstName;
 
     @Column(nullable = false)
@@ -33,6 +31,9 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private Gender gender;
+
+    @Column(name = "keycloak_id", unique = true)
+    private UUID keycloakId;
 
     @Column(unique = true)
     private String phone;

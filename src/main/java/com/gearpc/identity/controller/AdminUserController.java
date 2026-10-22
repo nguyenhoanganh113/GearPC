@@ -19,7 +19,7 @@ public class AdminUserController {
     private final UserService userService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PERM_USER_READ')")
     public ApiResponse<List<AdminUserResponse>> getAllUsers() {
         List<AdminUserResponse> responseList = userService.getAllUser();
         return ApiResponse.success(responseList);

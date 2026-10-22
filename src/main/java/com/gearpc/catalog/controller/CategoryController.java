@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,11 +22,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/categories")
 @RequiredArgsConstructor
+@PreAuthorize("denyAll()")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('PERM_CREATE_CATEGORY')")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CreateCategoryResponse> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
         CreateCategoryResponse response = categoryService.createCategory(request);
@@ -33,12 +36,14 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_READ_CATEGORY')")
     public ApiResponse<DetailCategoryResponse> getCategory(@PathVariable UUID id) {
         DetailCategoryResponse category = categoryService.getCategory(id);
         return ApiResponse.success(category);
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAuthority('PERM_READ_CATEGORY')")
     public ApiResponse<PaginationResponse<DetailCategoryResponse>> searchCategoriesForAdmin(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Boolean active,
@@ -55,12 +60,14 @@ public class CategoryController {
     }
 
     @GetMapping("/options")
+    @PreAuthorize("hasAuthority('PERM_READ_CATEGORY')")
     public ApiResponse<List<CategoryOptionResponse>> getActiveCategoryOptions() {
         List<CategoryOptionResponse> options = categoryService.getActiveCategoryOptions();
         return ApiResponse.success(options);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_CATEGORY')")
     public ApiResponse<UpdateCategoryResponse> updateCategory(
             @NonNull @PathVariable UUID id,
             @Valid @RequestBody UpdateCategoryRequest request
@@ -70,6 +77,7 @@ public class CategoryController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_CATEGORY')")
     public ApiResponse<UpdateCategoryResponse> updateCategoryStatus(
             @NonNull @PathVariable UUID id,
             @RequestParam Boolean active
@@ -79,6 +87,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_DELETE_CATEGORY')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> deleteCategory(@NonNull @PathVariable UUID id) {
         categoryService.deleteCategory(id);

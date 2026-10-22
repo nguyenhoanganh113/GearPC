@@ -1,4 +1,6 @@
 services:
+
+  # Cấu hình cho PostgreSQL
   postgres:
     image: 'postgres:16-alpine'
     container_name: gear-pc-postgres
@@ -10,6 +12,8 @@ services:
       - '5435:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  # Cấu hình cho Redis
   redis:
     image: 'redis:7-alpine'
     container_name: gear-pc-redis
@@ -18,6 +22,50 @@ services:
     volumes:
       - redis_data:/data
 
+  # PostgreSQL riêng cho Keycloak
+  keycloak_db:
+    image: 'postgres:16-alpine'
+    container_name: keycloak_postgres
+    labels:
+      org.springframework.boot.ignore: "true"
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    ports:
+      - '5436:5432'
+    volumes:
+      - keycloak_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s # Docker sẽ run healthcheck mỗi 5 giây
+      timeout: 5s # Trong khoảng thời gian này nếu không run thì thất bại
+      retries: 5 # Container bị đánh dấu unhealthy sau từng này lần thất bại liên tiếp
+    restart: always # Cấu hình này giúp database tự khởi động nếu bị crash
+
+  # Cấu hình cho Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.3
+    container_name: keycloak
+    depends_on:
+      keycloak_db:
+          condition: service_healthy # Đợi PostgreSQL của keycloak sẵn sàng
+    ports:
+      - '8080:8080' # Keycloak mặc định chạy port 8080
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME: localhost
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak_db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+    command: start-dev
+    restart: always
+
 volumes:
   postgres_data:
   redis_data:
+  keycloak_postgres_data:
