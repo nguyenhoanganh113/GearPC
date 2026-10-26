@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,9 +55,9 @@ public class ProductServiceImpl implements ProductService {
             throw new AppException(ErrorCode.PRODUCT_EXISTS);
         }
 
-        Category category = categoryRepository.findByIdAndActiveTrueAndDeletedAtIsNull(request.categoryId())
+        Category category = categoryRepository.findByIdAndDeletedAtIsNull(request.categoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        Brand brand = brandRepository.findByIdAndActiveTrueAndDeletedAtIsNull(request.brandId())
+        Brand brand = brandRepository.findByIdAndDeletedAtIsNull(request.brandId())
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_FOUND));
 
         Product product = productMapper.toProduct(request);
@@ -72,6 +73,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "product_detail", key = "#id", cacheManager = "cacheManager")
     public DetailProductResponse getProduct(UUID id) {
         Product product = productRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
