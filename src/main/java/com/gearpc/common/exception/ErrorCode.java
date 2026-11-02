@@ -58,6 +58,8 @@ public enum ErrorCode {
     DUPLICATE_PRODUCT_ATTRIBUTE(3004, "Thuộc tính sản phẩm bị trùng lặp", HttpStatus.BAD_REQUEST),
     PRODUCT_ATTRIBUTE_VALIDATION_FAILED(3005, "Một hoặc nhiều thuộc tính sản phẩm không hợp lệ", HttpStatus.BAD_REQUEST),
 
+    PAYMENT_GROUP_EXISTS(3201, "Mã nhóm thanh toán đã tồn tại", HttpStatus.CONFLICT),
+
     USER_EXISTS(4001, "Người dùng đã tồn tại", HttpStatus.CONFLICT),
     USER_NOT_FOUND(4002, "Người dùng không thể tìm thấy!", HttpStatus.NOT_FOUND),
     INVALID_CREDENTIALS(4003, "Email hoặc mật khẩu không đúng", HttpStatus.UNAUTHORIZED),
