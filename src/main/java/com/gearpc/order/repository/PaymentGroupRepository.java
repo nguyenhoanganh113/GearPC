@@ -5,5 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface PaymentGroupRepository extends JpaRepository<PaymentGroup, UUID> {
+    boolean existsByIdAndDeletedAtIsNull(UUID id);
+
     boolean existsByCode(String code);
 }

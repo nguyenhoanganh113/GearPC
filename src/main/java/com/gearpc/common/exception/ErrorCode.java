@@ -60,6 +60,12 @@ public enum ErrorCode {
 
     PAYMENT_GROUP_EXISTS(3201, "Mã nhóm thanh toán đã tồn tại", HttpStatus.CONFLICT),
 
+    PAYMENT_METHOD_EXISTS(3202, "Mã phương thức thanh toán đã tồn tại", HttpStatus.CONFLICT),
+
+    PAYMENT_GROUP_NOT_FOUND(3203, "Không tìm thấy nhóm thanh toán", HttpStatus.NOT_FOUND),
+    PAYMENT_METHOD_NOT_FOUND(3204, "Không tìm thấy phương thức thanh toán", HttpStatus.NOT_FOUND),
+    PAYMENT_GROUP_METHOD_EXISTS(3205, "Phương thức đã được gán vào nhóm thanh toán", HttpStatus.CONFLICT),
+
     USER_EXISTS(4001, "Người dùng đã tồn tại", HttpStatus.CONFLICT),
     USER_NOT_FOUND(4002, "Người dùng không thể tìm thấy!", HttpStatus.NOT_FOUND),
     INVALID_CREDENTIALS(4003, "Email hoặc mật khẩu không đúng", HttpStatus.UNAUTHORIZED),
