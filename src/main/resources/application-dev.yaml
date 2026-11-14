@@ -52,6 +52,19 @@ spring:
       hibernate:
         format_sql: true
 
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  domain:
+    endpoint: ${MINIO_DOMAIN_ENDPOINT:http://localhost:9000}
+  access:
+    name: ${MINIO_ACCESS_KEY:admin}
+    secret: ${MINIO_SECRET_KEY:123456788}
+  bucket:
+    name: ${MINIO_BUCKET_NAME:gear-pc}
+  folder:
+    name: ${MINIO_FOLDER_NAME:uploads}
+  presigned-url-expiry-seconds: 300 # 5 phút
+
 jwt:
   secret-key: p+L1K022W00ZWHbyI63BqADgbI4LbHqiBdPNdX3w+JngmSuhxyNqHliFIG/gP4TQ9Q/yyoy9enSMfiVQ/Qq9Ew==
   issuer: https://gearpc.com

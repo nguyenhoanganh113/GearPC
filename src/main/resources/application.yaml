@@ -26,5 +26,13 @@ spring:
       pageable:
         one-indexed-parameters: false
 
+app:
+  file-upload:
+    presigned-put-url-expiry-seconds: 1800
+    presigned-get-url-expiry-seconds: 1800
+    session-ttl-seconds: 86400
+    max-image-file-size: 52428800
+    #max-video-file-size: 104857600
+
 server:
   port: ${SERVER_PORT:8086}
