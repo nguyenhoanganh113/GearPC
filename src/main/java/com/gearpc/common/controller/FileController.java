@@ -2,7 +2,9 @@ package com.gearpc.common.controller;
 
 import com.gearpc.common.dto.ApiResponse;
 import com.gearpc.common.dto.request.CreateFileUploadRequest;
+import com.gearpc.common.dto.request.ConfirmFileUploadRequest;
 import com.gearpc.common.dto.response.CreateFileUploadResponse;
+import com.gearpc.common.dto.response.FileViewResponse;
 import com.gearpc.common.service.FilePresignedUploadService;
 import io.minio.errors.MinioException;
 import jakarta.validation.Valid;
@@ -27,4 +29,10 @@ public class FileController {
     }
 
 
+    @PostMapping(value = "/confirm", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<FileViewResponse> confirmUpload(
+            @Valid @RequestBody ConfirmFileUploadRequest request
+    ) {
+        return ApiResponse.success(filePresignedUploadService.confirmUpload(request));
+    }
 }

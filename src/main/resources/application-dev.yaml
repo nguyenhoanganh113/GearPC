@@ -63,7 +63,6 @@ minio:
     name: ${MINIO_BUCKET_NAME:gear-pc}
   folder:
     name: ${MINIO_FOLDER_NAME:uploads}
-  presigned-url-expiry-seconds: 300 # 5 phút
 
 jwt:
   secret-key: p+L1K022W00ZWHbyI63BqADgbI4LbHqiBdPNdX3w+JngmSuhxyNqHliFIG/gP4TQ9Q/yyoy9enSMfiVQ/Qq9Ew==
