@@ -12,6 +12,7 @@ import com.gearpc.common.exception.AppException;
 import com.gearpc.common.exception.ErrorCode;
 import com.gearpc.common.repository.StoredFileRepository;
 import com.gearpc.common.service.FilePresignedUploadService;
+import com.gearpc.common.util.ImageFilePolicy;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.Http;
 import io.minio.MinioClient;
@@ -31,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Instant;
@@ -52,6 +54,8 @@ public class FilePresignedUploadServiceImpl implements FilePresignedUploadServic
             "image/jpeg", Set.of("jpg", "jpeg"),
             "image/png", Set.of("png")
     );
+    private static final DateTimeFormatter AMZ_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("uuuuMMdd'T'HHmmssX", Locale.ROOT);
 
     private final MinioProperties minioProperties;
     private final FileUploadProperties fileUploadProperties;
@@ -133,93 +137,102 @@ public class FilePresignedUploadServiceImpl implements FilePresignedUploadServic
     @Override
     @Transactional(noRollbackFor = AppException.class)
     public FileViewResponse confirmUpload(ConfirmFileUploadRequest request) {
-        if (request.fileId() == null) {
-            throw new AppException(ErrorCode.VALIDATION_FAILED);
-        }
-        StoredFile file = storedFileRepository.findForUpdate(request.fileId())
-                .orElseThrow(() -> new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND));
-        if (file.getDeletedAt() != null || file.getStatus() == StoredFileStatus.DELETED) {
+        StoredFile storedFile = lockedUpload(request.fileId());
+
+        if (storedFile.getDeletedAt() != null) {
             throw new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND);
         }
-        if (!Objects.equals(file.getCreatedBy(), actor())) {
-            throw new AppException(ErrorCode.FILE_UPLOAD_FORBIDDEN);
+        if (storedFile.getStatus() == StoredFileStatus.PENDING) {
+            finalizeUpload(storedFile);
         }
-        if (file.getStatus() == StoredFileStatus.EXPIRED) {
-            throw new AppException(ErrorCode.FILE_UPLOAD_EXPIRED);
-        }
-        if (file.getStatus() == StoredFileStatus.PENDING) {
-            if (file.getUploadExpiredAt() == null || !file.getUploadExpiredAt().isAfter(Instant.now())) {
-                file.setStatus(StoredFileStatus.EXPIRED);
-                file.setLastModifiedBy(actor());
-                storedFileRepository.saveAndFlush(file);
-                removeAfterCommit(file.getBucket(), file.getTemporaryObjectKey());
-                throw new AppException(ErrorCode.FILE_UPLOAD_EXPIRED);
-            }
-            finalizeUpload(file);
-        }
-        if (file.getStatus() != StoredFileStatus.READY || file.getReadyAt() == null
-                || file.getSize() == null || file.getSize() <= 0) {
-            throw new AppException(ErrorCode.FILE_UPLOAD_NOT_READY);
-        }
-        return signedView(file);
+
+        return readyLogoView(storedFile);
     }
 
-    private void finalizeUpload(StoredFile file) {
-        StatObjectResponse uploaded = stat(file.getBucket(), file.getTemporaryObjectKey());
-        if (!StringUtils.hasText(uploaded.etag())) {
+    private StoredFile lockedUpload(UUID fileId) {
+        if (fileId == null) {
+            throw new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND);
+        }
+        return storedFileRepository.findForUpdate(fileId)
+                .orElseThrow(() -> new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND));
+    }
+
+    private void finalizeUpload(StoredFile storedFile) {
+        StatObjectResponse object = stat(storedFile.getBucket(), storedFile.getTemporaryObjectKey());
+        if (!StringUtils.hasText(object.etag())) {
             throw new AppException(ErrorCode.FILE_STORAGE_ERROR);
         }
+
         try {
-            validateUploadedObject(file, uploaded);
+            if (!Objects.equals(storedFile.getContentType(), object.contentType())) {
+                throw new AppException(ErrorCode.FILE_UPLOAD_TYPE_INVALID);
+            }
+
+            long maximum = fileUploadProperties.maxFileSizeForContentType(object.contentType());
+            if (object.size() <= 0 || object.size() > maximum) {
+                throw new AppException(ErrorCode.FILE_UPLOAD_SIZE_EXCEEDED);
+            }
+
+            if (!storedFile.getId().toString().equals(object.userMetadata().getFirst("file-id"))) {
+                throw new AppException(ErrorCode.FILE_UPLOAD_REFERENCE_INVALID);
+            }
         } catch (AppException e) {
-            file.setStatus(StoredFileStatus.FAILED);
-            file.setLastModifiedBy(actor());
-            storedFileRepository.saveAndFlush(file);
-            removeAfterCommit(file.getBucket(), file.getTemporaryObjectKey());
+            reject(storedFile);
             throw e;
         }
 
         try {
             minioClient.copyObject(CopyObjectArgs.builder()
-                    .bucket(file.getBucket())
-                    .object(file.getObjectKey())
+                    .bucket(storedFile.getBucket())
+                    .object(storedFile.getObjectKey())
                     .source(SourceObject.builder()
-                            .bucket(file.getBucket())
-                            .object(file.getTemporaryObjectKey())
-                            .versionId(uploaded.versionId())
-                            .matchETag(uploaded.etag())
+                            .bucket(storedFile.getBucket())
+                            .object(storedFile.getTemporaryObjectKey())
+                            .versionId(object.versionId())
+                            .matchETag(object.etag())
                             .build())
                     .build());
-        } catch (MinioException e) {
+        } catch (Exception e) {
             throw storageFailure("Cannot finalize file upload", e);
         }
-        StatObjectResponse finalized = stat(file.getBucket(), file.getObjectKey());
-        if (finalized.size() != uploaded.size()
-                || !Objects.equals(finalized.contentType(), uploaded.contentType())
-                || !file.getId().toString().equals(finalized.userMetadata().getFirst("file-id"))) {
+
+        StatObjectResponse finalized = stat(storedFile.getBucket(), storedFile.getObjectKey());
+        if (finalized.size() != object.size()
+                || !Objects.equals(finalized.contentType(), object.contentType())) {
             throw new AppException(ErrorCode.FILE_STORAGE_ERROR);
         }
-        file.setSize(finalized.size());
-        file.setContentType(finalized.contentType());
-        file.setStatus(StoredFileStatus.READY);
-        file.setReadyAt(Instant.now());
+
+        storedFile.setSize(finalized.size());
+        storedFile.setContentType(finalized.contentType());
+        storedFile.setStatus(StoredFileStatus.READY);
+        storedFile.setReadyAt(Instant.now());
+        storedFile.setLastModifiedBy(actor());
+        storedFileRepository.saveAndFlush(storedFile);
+        removeAfterCommit(storedFile.getBucket(), storedFile.getTemporaryObjectKey());
+    }
+
+    private void reject(StoredFile file) {
+        file.setStatus(StoredFileStatus.FAILED);
         file.setLastModifiedBy(actor());
         storedFileRepository.saveAndFlush(file);
+        removeAfterCommit(file.getBucket(), file.getObjectKey());
         removeAfterCommit(file.getBucket(), file.getTemporaryObjectKey());
     }
 
-    private void validateUploadedObject(StoredFile file, StatObjectResponse uploaded) {
-        if (!ALLOWED_CONTENT_TYPES.containsKey(file.getContentType())
-                || !Objects.equals(file.getContentType(), uploaded.contentType())) {
+    private FileViewResponse readyLogoView(StoredFile storedFile) {
+        if (storedFile.getDeletedAt() != null) {
+            throw new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND);
+        }
+        if (storedFile.getStatus() != StoredFileStatus.READY
+                || storedFile.getSize() == null
+                || storedFile.getSize() <= 0
+                || storedFile.getReadyAt() == null) {
+            throw new AppException(ErrorCode.FILE_UPLOAD_NOT_READY);
+        }
+        if (!ImageFilePolicy.isAllowedContentType(storedFile.getContentType())) {
             throw new AppException(ErrorCode.FILE_UPLOAD_TYPE_INVALID);
         }
-        if (uploaded.size() <= 0
-                || uploaded.size() > fileUploadProperties.maxFileSizeForContentType(uploaded.contentType())) {
-            throw new AppException(ErrorCode.FILE_UPLOAD_SIZE_EXCEEDED);
-        }
-        if (!file.getId().toString().equals(uploaded.userMetadata().getFirst("file-id"))) {
-            throw new AppException(ErrorCode.FILE_UPLOAD_REFERENCE_INVALID);
-        }
+        return signedView(storedFile);
     }
 
     private FileViewResponse signedView(StoredFile file) {
@@ -230,21 +243,25 @@ public class FilePresignedUploadServiceImpl implements FilePresignedUploadServic
                     .object(file.getObjectKey())
                     .expiry(fileUploadProperties.presignedGetUrlExpirySeconds(), TimeUnit.SECONDS)
                     .build());
-            var params = UriComponentsBuilder.fromUriString(url).build().getQueryParams();
-            Instant signedAt = Instant.from(DateTimeFormatter.ofPattern("uuuuMMdd'T'HHmmssX", Locale.ROOT)
-                    .parse(Objects.requireNonNull(params.getFirst("X-Amz-Date"))));
-            Instant expiresAt = signedAt.plusSeconds(Long.parseLong(params.getFirst("X-Amz-Expires")));
             return new FileViewResponse(file.getId(), file.getFileName(), file.getContentType(),
-                    file.getSize(), url, expiresAt);
-        } catch (MinioException | IllegalArgumentException | java.time.DateTimeException | NullPointerException e) {
+                    file.getSize(), url, presignedUrlExpiresAt(url));
+        } catch (Exception e) {
             throw storageFailure("Cannot create file view URL", e);
         }
     }
 
-    private StatObjectResponse stat(String bucket, String key) {
-        if (!StringUtils.hasText(key)) {
-            throw new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND);
+    private Instant presignedUrlExpiresAt(String url) {
+        MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUriString(url).build().getQueryParams();
+        String signedAt = queryParams.getFirst("X-Amz-Date");
+        String expirySeconds = queryParams.getFirst("X-Amz-Expires");
+        if (signedAt == null || expirySeconds == null) {
+            throw new AppException(ErrorCode.FILE_STORAGE_ERROR);
         }
+        Instant signingTime = Instant.from(AMZ_DATE_FORMAT.parse(signedAt));
+        return signingTime.plusSeconds(Long.parseLong(expirySeconds));
+    }
+
+    private StatObjectResponse stat(String bucket, String key) {
         try {
             return minioClient.statObject(StatObjectArgs.builder().bucket(bucket).object(key).build());
         } catch (ErrorResponseException e) {
@@ -252,7 +269,7 @@ public class FilePresignedUploadServiceImpl implements FilePresignedUploadServic
                 throw new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND);
             }
             throw storageFailure("Cannot read uploaded file", e);
-        } catch (MinioException e) {
+        } catch (Exception e) {
             throw storageFailure("Cannot read uploaded file", e);
         }
     }
@@ -263,7 +280,6 @@ public class FilePresignedUploadServiceImpl implements FilePresignedUploadServic
     }
 
     private void removeAfterCommit(String bucket, String key) {
-        if (!StringUtils.hasText(key)) return;
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -278,9 +294,18 @@ public class FilePresignedUploadServiceImpl implements FilePresignedUploadServic
 
     private void removeQuietly(String bucket, String key) {
         try {
+            remove(bucket, key);
+        } catch (Exception e) {
+            log.warn("Cannot remove temporary file; cleanup will retry", e);
+        }
+    }
+
+    private void remove(String bucket, String key) {
+        if (!StringUtils.hasText(key)) return;
+        try {
             minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(key).build());
-        } catch (MinioException e) {
-            log.warn("Cannot remove temporary upload: bucket={}, key={}", bucket, key, e);
+        } catch (Exception e) {
+            throw storageFailure("Cannot remove temporary file", e);
         }
     }
 
