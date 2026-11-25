@@ -38,6 +38,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -147,6 +152,60 @@ public class FilePresignedUploadServiceImpl implements FilePresignedUploadServic
         }
 
         return readyLogoView(storedFile);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FileViewResponse presignedGetInternal(String fileId) {
+        if (!StringUtils.hasText(fileId)) {
+            throw new AppException(ErrorCode.FILE_UPLOAD_REFERENCE_INVALID);
+        }
+        validateId(fileId);
+        StoredFile storedFile = storedFileRepository.findById(UUID.fromString(fileId))
+                .orElseThrow(() -> new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND));
+
+        return readyLogoView(storedFile);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, FileViewResponse> presignedGetsInternal(Collection<String> fileIds) {
+        Set<String> ids = new LinkedHashSet<>();
+        for (String id : fileIds) {
+            if (StringUtils.hasText(id)) {
+                validateId(id);
+                ids.add(id);
+            }
+        }
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        List<StoredFile> foundFiles = storedFileRepository.findAllById(
+                ids.stream().map(UUID::fromString).toList());
+        if (foundFiles.size() != ids.size()) {
+            throw new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND);
+        }
+        Map<String, StoredFile> files = new HashMap<>();
+        for (StoredFile storedFile : foundFiles) {
+            files.put(storedFile.getId().toString(), storedFile);
+        }
+        Map<String, FileViewResponse> views = new LinkedHashMap<>();
+        for (String id : ids) {
+            StoredFile storedFile = files.get(id);
+            views.put(id, readyLogoView(storedFile));
+        }
+        return views;
+    }
+
+    private void validateId(String fileId) {
+        try {
+            if (fileId == null || !UUID.fromString(fileId).toString().equals(fileId)) {
+                throw new IllegalArgumentException();
+            }
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid file upload ID", e);
+            throw new AppException(ErrorCode.FILE_UPLOAD_NOT_FOUND);
+        }
     }
 
     private StoredFile lockedUpload(UUID fileId) {

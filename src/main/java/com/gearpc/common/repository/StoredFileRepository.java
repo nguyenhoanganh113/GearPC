@@ -14,8 +14,6 @@ import java.util.UUID;
 @Repository
 public interface StoredFileRepository extends JpaRepository<StoredFile, UUID> {
 
-    Optional<StoredFile> findByIdAndDeletedAtIsNull(UUID id);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT f FROM StoredFile f WHERE f.id = :id")
     Optional<StoredFile> findForUpdate(@Param("id") UUID id);

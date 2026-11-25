@@ -12,9 +12,6 @@ public record MinioProperties(
         @NotBlank
         String endpoint,
 
-        @Valid
-        Domain domain,
-
         @NotNull
         @Valid
         Access access,
@@ -27,7 +24,6 @@ public record MinioProperties(
         @Valid
         Folder folder
 ) {
-        public record Domain(@NotBlank String endpoint) {}
         public record Access(@NotBlank String name, @NotBlank String secret) {}
         public record Bucket(@NotBlank String name) {}
         public record Folder(@NotBlank String name) {}
