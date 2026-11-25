@@ -73,7 +73,16 @@ public enum ErrorCode {
 
     TOKEN_EXPIRED(5001, "Token đã hết hạn", HttpStatus.UNAUTHORIZED),
     TOKEN_INVALID(5002, "Token không hợp lệ", HttpStatus.UNAUTHORIZED),
-    MISSING_LOGOUT_INFO(5003, "Thông tin đăng xuất bị thiếu", HttpStatus.NOT_FOUND)
+    MISSING_LOGOUT_INFO(5003, "Thông tin đăng xuất bị thiếu", HttpStatus.NOT_FOUND),
+
+    FILE_UPLOAD_TYPE_INVALID(6001, "File upload không hợp lệ", HttpStatus.BAD_REQUEST),
+    FILE_UPLOAD_NOT_FOUND(6002, "File upload not found", HttpStatus.NOT_FOUND),
+    FILE_UPLOAD_NOT_READY(6003, "File upload is not ready", HttpStatus.CONFLICT),
+    FILE_UPLOAD_EXPIRED(6004, "File upload has expired", HttpStatus.GONE),
+    FILE_UPLOAD_SIZE_EXCEEDED(6005, "Invalid uploaded file size", HttpStatus.BAD_REQUEST),
+    FILE_UPLOAD_REFERENCE_INVALID(6006, "Uploaded file metadata does not match", HttpStatus.BAD_REQUEST),
+    FILE_UPLOAD_FORBIDDEN(6007, "File upload belongs to another user", HttpStatus.FORBIDDEN),
+    FILE_STORAGE_ERROR(6008, "Cannot access file storage", HttpStatus.INTERNAL_SERVER_ERROR)
 
     ;
 
