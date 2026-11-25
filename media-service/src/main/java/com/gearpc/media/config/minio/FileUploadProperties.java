@@ -1,4 +1,4 @@
-package com.gearpc.common.config.minio;
+package com.gearpc.media.config.minio;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

@@ -1,4 +1,4 @@
-package com.gearpc.common.config.minio;
+package com.gearpc.media.config.minio;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;

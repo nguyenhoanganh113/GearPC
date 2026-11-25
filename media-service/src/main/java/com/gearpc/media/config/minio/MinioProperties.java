@@ -1,4 +1,4 @@
-package com.gearpc.common.config.minio;
+package com.gearpc.media.config.minio;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
