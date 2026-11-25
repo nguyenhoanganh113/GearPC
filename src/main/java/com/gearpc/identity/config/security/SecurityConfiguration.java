@@ -79,7 +79,6 @@ public class SecurityConfiguration {
                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/login.html", "/css/**", "/js/**", "/images/**", "/oauth2/**", "/login/**").permitAll()
-                        .requestMatchers("/api/v1/file/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/cache-demo/**").permitAll()
                         .anyRequest().authenticated())
