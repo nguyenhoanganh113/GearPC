@@ -10,6 +10,8 @@ import io.minio.errors.MinioException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,5 +35,12 @@ public class FileController {
             @Valid @RequestBody ConfirmFileUploadRequest request
     ) {
         return ApiResponse.success(filePresignedUploadService.confirmUpload(request));
+    }
+
+    @GetMapping("/{fileId}/presigned-url")
+    public ApiResponse<FileViewResponse> getPresignedFileUrl(
+            @PathVariable("fileId") String fileId
+    ) {
+        return ApiResponse.success(filePresignedUploadService.presignedGetInternal(fileId));
     }
 }
