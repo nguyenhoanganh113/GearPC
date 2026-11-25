@@ -3,6 +3,7 @@ package com.gearpc.media.controller;
 import com.gearpc.media.dto.ApiResponse;
 import com.gearpc.media.dto.request.ConfirmFileUploadRequest;
 import com.gearpc.media.dto.request.CreateFileUploadRequest;
+import com.gearpc.media.dto.request.FilePresignedUrlsRequest;
 import com.gearpc.media.dto.response.CreateFileUploadResponse;
 import com.gearpc.media.dto.response.FileViewResponse;
 import com.gearpc.media.service.FilePresignedUploadService;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/file")
@@ -42,5 +45,12 @@ public class FileController {
             @PathVariable("fileId") String fileId
     ) {
         return ApiResponse.success(filePresignedUploadService.presignedGetInternal(fileId));
+    }
+
+    @PostMapping(value = "/presigned-urls", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<Map<String, FileViewResponse>> getPresignedFileUrls(
+            @Valid @RequestBody FilePresignedUrlsRequest request
+    ) {
+        return ApiResponse.success(filePresignedUploadService.presignedGetsInternal(request.fileIds()));
     }
 }
