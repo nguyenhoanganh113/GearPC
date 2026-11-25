@@ -21,3 +21,10 @@ minio:
     name: ${MINIO_BUCKET_NAME:gear-pc}
   folder:
     name: ${MINIO_FOLDER_NAME:uploads}
+
+app:
+  file-upload:
+    presigned-put-url-expiry-seconds: 1800
+    presigned-get-url-expiry-seconds: 1800
+    session-ttl-seconds: 86400
+    max-image-file-size: 52428800
