@@ -39,12 +39,6 @@ spring:
     username: ${DEV_DB_USERNAME:postgres}
     password: ${DEV_DB_PASSWORD:123456}
 
-  data:
-    redis:
-      host: ${DEV_REDIS_HOST:localhost}
-      port: ${DEV_REDIS_PORT:6378}
-      password: ${DEV_REDIS_PASSWORD:}
-
   # Cấu hình JPA / Hibernate
   jpa:
     show-sql: true

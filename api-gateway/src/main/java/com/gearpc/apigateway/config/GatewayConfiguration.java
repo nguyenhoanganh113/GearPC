@@ -15,6 +15,10 @@ public class GatewayConfiguration {
                         .path("/api/v1/file/**")
                         //.uri("http://localhost:8085"))
                         .uri("lb://MEDIA-SERVICE"))
+                .route("user-service", r -> r
+                        .path("/api/v1/users/**", "/api/v1/admin/users/**", "/api/v1/auth/**", "/api/v1/redis/**",
+                                "/login", "/login/**", "/oauth2/**")
+                        .uri("lb://USER-SERVICE"))
                 .build();
     }
 }
