@@ -1,0 +1,59 @@
+server:
+  port: ${SERVER_PORT:8087}
+
+spring:
+  docker:
+    compose:
+      file: compose.yaml
+      lifecycle-management: start-only
+  datasource:
+    url: ${USER_DB_URL:jdbc:postgresql://localhost:5437/gearpc_user_v1}
+    username: ${USER_DB_USERNAME:gearpc_user}
+    password: ${USER_DB_PASSWORD:123456788}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  data:
+    redis:
+      host: ${DEV_REDIS_HOST:localhost}
+      port: ${DEV_REDIS_PORT:6380}
+      password: ${DEV_REDIS_PASSWORD:}
+    web:
+      pageable:
+        one-indexed-parameters: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/gearpc}
+      client:
+        registration:
+          keycloak:
+            client-id: gear-pc-app
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:FeeCja5BfvZE6q2DyXGkvmfb65BLCsvz}
+            scope: [openid, profile, email]
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:9191/login/oauth2/code/keycloak
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/gearpc}
+            user-name-attribute: preferred_username
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+jwt:
+  secret-key: ${JWT_SECRET_KEY:p+L1K022W00ZWHbyI63BqADgbI4LbHqiBdPNdX3w+JngmSuhxyNqHliFIG/gP4TQ9Q/yyoy9enSMfiVQ/Qq9Ew==}
+  issuer: ${JWT_ISSUER:https://gearpc.com}
+keycloak:
+  resource-client-id: gear-pc-app

@@ -1,0 +1,64 @@
+package com.gearpc.user.entity;
+
+import com.gearpc.user.common.entity.BaseEntity;
+import com.gearpc.user.enums.Gender;
+import com.gearpc.user.enums.UserStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+@Entity
+@Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class User extends BaseEntity {
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private Gender gender;
+
+    @Column(name = "keycloak_id", unique = true)
+    private UUID keycloakId;
+
+    @Column(unique = true)
+    private String phone;
+
+    private String avatarKey;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus userStatus = UserStatus.PENDING_VERIFICATION;
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private Set<UserHasRole> userHasRoles = new HashSet<>();
+
+    // Method helper assign role cho user
+    public void assignRole(Role role) {
+        UserHasRole userHasRole = new UserHasRole(this, role);
+        userHasRoles.add(userHasRole);
+    }
+}

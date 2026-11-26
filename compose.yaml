@@ -4,6 +4,8 @@ services:
   postgres:
     image: 'postgres:16-alpine'
     container_name: gear-pc-postgres
+    labels:
+      org.springframework.boot.ignore: "true"
     environment:
       - 'POSTGRES_DB=gearpc_db'
       - 'POSTGRES_PASSWORD=123456'
