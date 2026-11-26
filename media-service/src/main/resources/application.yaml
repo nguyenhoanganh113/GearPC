@@ -1,3 +1,6 @@
+server:
+  port: 8085
+
 spring:
   application:
     name: media-service
@@ -9,8 +12,6 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-server:
-  port: 8085
 
 minio:
   endpoint: ${MINIO_ENDPOINT:http://192.168.40.123:9000}
@@ -28,3 +29,10 @@ app:
     presigned-get-url-expiry-seconds: 1800
     session-ttl-seconds: 86400
     max-image-file-size: 52428800
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
