@@ -13,7 +13,8 @@ public class GatewayConfiguration {
         return builder.routes()
                 .route("media-service", r -> r
                         .path("/api/v1/file/**")
-                        .uri("http://localhost:8085"))
+                        //.uri("http://localhost:8085"))
+                        .uri("lb://MEDIA-SERVICE"))
                 .build();
     }
 }
