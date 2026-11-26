@@ -5,7 +5,7 @@ spring:
   docker:
     compose:
       enabled: true
-      lifecycle-management: start-and-stop
+      lifecycle-management: start-only
 
   # Cấu hình Security
   security:
