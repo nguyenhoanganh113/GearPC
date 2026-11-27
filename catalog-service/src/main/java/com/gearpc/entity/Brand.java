@@ -1,0 +1,36 @@
+package com.gearpc.entity;
+
+import com.gearpc.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "brands")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Brand extends BaseEntity {
+
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
+
+    @Column(name = "slug", nullable = false, unique = true)
+    private String slug;
+
+    @Column(name = "logo_url", length = 500)
+    private String logoUrl;
+
+    @Column(name = "active", nullable = false)
+    @Builder.Default
+    private boolean active = false;
+
+    @OneToMany(mappedBy = "brand")
+    @Builder.Default
+    private List<Product> products = new ArrayList<>();
+
+}

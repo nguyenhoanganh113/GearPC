@@ -19,6 +19,11 @@ public class GatewayConfiguration {
                         .path("/api/v1/users/**", "/api/v1/admin/users/**", "/api/v1/auth/**", "/api/v1/redis/**",
                                 "/login", "/login/**", "/oauth2/**")
                         .uri("lb://USER-SERVICE"))
+                .route("catalog-service", r -> r
+                        .path("/api/v1/admin/attribute-definitions/**", "/api/v1/admin/brands/**",
+                                "/api/v1/admin/categories/**", "/api/v1/admin/products/**",
+                                "/api/v1/cache-demo/**")
+                        .uri("lb://CATALOG-SERVICE"))
                 .build();
     }
 }
