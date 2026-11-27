@@ -7,32 +7,6 @@ spring:
       enabled: true
       lifecycle-management: start-only
 
-  # Cấu hình Security
-  security:
-    oauth2:
-
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/realms/gearpc
-
-      client:
-        registration:
-          keycloak:
-            client-id: gear-pc-app
-            client-secret: FeeCja5BfvZE6q2DyXGkvmfb65BLCsvz
-            scope:
-              - openid
-              - profile
-              - email
-            authorization-grant-type: authorization_code
-            # Authorization Code Flow = Standard flow : On
-            redirect-uri: http://localhost:8086/login/oauth2/code/keycloak
-        provider:
-          keycloak:
-            issuer-uri: http://localhost:8080/realms/gearpc
-            user-name-attribute: preferred_username
-
-
   # Cấu hình PostgreSQL (Spring Boot Docker Compose sẽ tự nhận diện kết nối)
   datasource:
     url: ${DEV_DB_URL:jdbc:postgresql://localhost:5435/gearpc_db}
@@ -45,7 +19,3 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
-jwt:
-  secret-key: p+L1K022W00ZWHbyI63BqADgbI4LbHqiBdPNdX3w+JngmSuhxyNqHliFIG/gP4TQ9Q/yyoy9enSMfiVQ/Qq9Ew==
-  issuer: https://gearpc.com

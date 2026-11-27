@@ -1,0 +1,87 @@
+package com.gearpc.controller;
+
+import com.gearpc.dto.request.CreateProductRequest;
+import com.gearpc.dto.request.ProductSearchRequest;
+import com.gearpc.dto.request.UpdateProductRequest;
+import com.gearpc.dto.request.UpdateProductStatusRequest;
+import com.gearpc.dto.response.CreateProductResponse;
+import com.gearpc.dto.response.DetailProductResponse;
+import com.gearpc.dto.response.UpdateProductResponse;
+import com.gearpc.service.ProductService;
+import com.gearpc.dto.ApiResponse;
+import com.gearpc.dto.PaginationResponse;
+import jakarta.validation.Valid;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/admin/products")
+@RequiredArgsConstructor
+public class ProductController {
+
+    private final ProductService productService;
+
+    @PostMapping
+    @PreAuthorize("hasAuthority('PERM_CREATE_PRODUCT')")
+    public ApiResponse<CreateProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
+        CreateProductResponse createProductResponse = productService.createProduct(request);
+        return ApiResponse.created(createProductResponse);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_READ_PRODUCT')")
+    public ApiResponse<DetailProductResponse> getProductById(@NonNull @PathVariable UUID id) {
+        DetailProductResponse response = productService.getProduct(id);
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAuthority('PERM_READ_PRODUCT')")
+    public ApiResponse<PaginationResponse<DetailProductResponse>> searchProductsForAdmin(
+            @PageableDefault(
+                    size = 15,
+                    sort = {"price"},
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable,
+            @Valid ProductSearchRequest productSearchRequest
+    ) {
+        PaginationResponse<DetailProductResponse> products =
+                productService.searchProductsForAdmin(productSearchRequest, pageable);
+        return ApiResponse.success(products);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_PRODUCT')")
+    public ApiResponse<UpdateProductResponse> updateProduct(
+            @NonNull @PathVariable UUID id,
+            @Valid @RequestBody UpdateProductRequest request
+    ) {
+        UpdateProductResponse response = productService.updateProduct(id, request);
+        return ApiResponse.success(response);
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('PERM_UPDATE_PRODUCT')")
+    public ApiResponse<UpdateProductResponse> updateProductStatus(
+            @NonNull @PathVariable UUID id,
+            @Valid @RequestBody UpdateProductStatusRequest request
+    ) {
+        UpdateProductResponse response = productService.updateProductStatus(id, request);
+        return ApiResponse.success(response);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERM_DELETE_PRODUCT')")
+    public ApiResponse<Void> deleteProduct(@NonNull @PathVariable UUID id) {
+        productService.deleteProduct(id);
+        return ApiResponse.success();
+    }
+
+}
