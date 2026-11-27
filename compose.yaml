@@ -14,6 +14,32 @@ services:
       - '5435:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gearpc_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # PostgreSQL riêng cho user-service, không dùng chung database GearPC.
+  user-postgres:
+    image: 'postgres:16-alpine'
+    container_name: user-service-postgres
+    labels:
+      org.springframework.boot.ignore: "true"
+    environment:
+      POSTGRES_DB: ${USER_DB_NAME:-gearpc_user_v1}
+      POSTGRES_USER: ${USER_DB_USERNAME:-gearpc_user}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-123456788}
+    ports:
+      - '5437:5432'
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USER_DB_USERNAME:-gearpc_user} -d ${USER_DB_NAME:-gearpc_user_v1}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
   # Cấu hình cho Redis
   redis:
@@ -23,6 +49,23 @@ services:
       - '6378:6379'
     volumes:
       - redis_data:/data
+
+  # Redis riêng cho user-service để lưu blacklist/session.
+  user-redis:
+    image: 'redis:7-alpine'
+    container_name: user-service-redis
+    labels:
+      org.springframework.boot.ignore: "true"
+    ports:
+      - '6380:6379'
+    volumes:
+      - user_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
 
   # PostgreSQL riêng cho Keycloak
   keycloak_db:
@@ -81,8 +124,93 @@ services:
       MINIO_ROOT_PASSWORD: 123456788
     command: server --console-address ":9001" /data
 
+  # Eureka Server: registry để các service tìm thấy nhau.
+  eureka-service:
+    image: gearpc-eureka:latest
+    build:
+      context: ./eureka-service
+    ports:
+      - '8761:8761'
+    restart: unless-stopped
+
+  # User Service và các dependency riêng của nó.
+  user-service:
+    image: gearpc_user:latest
+    build:
+      context: ./user-service
+    ports:
+      - '8087:8087'
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
+      USER_DB_URL: jdbc:postgresql://user-postgres:5432/${USER_DB_NAME:-gearpc_user_v1}
+      USER_DB_USERNAME: ${USER_DB_USERNAME:-gearpc_user}
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:-123456788}
+      DEV_REDIS_HOST: user-redis
+      DEV_REDIS_PORT: 6379
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: user-service
+    depends_on:
+      user-postgres:
+        condition: service_healthy
+      user-redis:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
+    restart: unless-stopped
+
+  # Media Service dùng database gearpc_media trong PostgreSQL GearPC.
+  media-service:
+    image: gearpc_media:latest
+    build:
+      context: ./media-service
+    ports:
+      - '8085:8085'
+    environment:
+      MEDIA_DB_URL: jdbc:postgresql://postgres:5432/gearpc_media
+      MEDIA_DB_USERNAME: ${MEDIA_DB_USERNAME:-gearpc_media}
+      MEDIA_DB_PASSWORD: ${MEDIA_DB_PASSWORD:-media_dev}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://localhost:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-admin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-123456788}
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: media-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      eureka-service:
+        condition: service_started
+    restart: unless-stopped
+
+  # API Gateway: cổng truy cập từ client; các route dùng Eureka để tìm backend.
+  api-gateway:
+    image: gearpc_gateway:latest
+    build:
+      context: ./api-gateway
+    ports:
+      - '9191:9191'
+    environment:
+      EUREKA_INSTANCE_HOSTNAME: api-gateway
+      EUREKA_URL: http://eureka-service:8761/eureka/
+    depends_on:
+      eureka-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      media-service:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  user_postgres_data:
+    name: gearpc_user_postgres_data
+    external: true
   redis_data:
+  user_redis_data:
+    name: user-service_user_redis_data
+    external: true
   keycloak_postgres_data:
   minio_data:
