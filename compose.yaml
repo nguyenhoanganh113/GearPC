@@ -170,7 +170,7 @@ services:
       MEDIA_DB_URL: jdbc:postgresql://postgres:5432/gearpc_media
       MEDIA_DB_USERNAME: ${MEDIA_DB_USERNAME:-gearpc_media}
       MEDIA_DB_PASSWORD: ${MEDIA_DB_PASSWORD:-media_dev}
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://192.168.40.123:9000}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://localhost:9000}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-admin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-123456788}
       EUREKA_URL: http://eureka-service:8761/eureka/
